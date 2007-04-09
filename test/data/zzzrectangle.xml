@@ -41,8 +41,8 @@
 <!--  -->
 <!--  -->
 <!--  -->
-<!-- y-size from tube center to bottom of flat horizontal pocket part -->
- <Constant name="gap"      value="12.3*mm"/>
+<!-- y-size from tube center to bottom of flat horizontal pocket part    was 12.3-->
+ <Constant name="gap"      value="4.3*mm"/>
 <!--  -->
 <!--    y-distance from tube center to top of flat pocket part:  -->
 <!-- it's used because of previous set up , re-calculated as:  -->

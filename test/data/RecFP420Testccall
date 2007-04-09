@@ -23,6 +23,8 @@
 #include "SimG4CMS/FP420/interface/FP420G4Hit.h"
 #include "RecoRomanPot/RecoFP420/interface/RecFP420Test.h"
 
+// new:DigitizerFP420.cc
+//#include "SimRomanPot/SimFP420/interface/FP420DigiMain.h"
 
 #include "SimRomanPot/SimFP420/interface/HDigiFP420.h"
 #include "SimRomanPot/SimFP420/interface/DigitizerFP420.h"
@@ -55,6 +57,10 @@
 
 
 //================================================================
+// Root stuff
+
+// Include the standard header <cassert> to effectively include
+// the standard header <assert.h> within the std namespace.
 #include <cassert>
 
 using namespace edm;
@@ -63,6 +69,21 @@ using namespace std;
 
 //#define ddebugprim0
 //#define ddebugprim
+//#define ddebug
+//#define mydigidebug10
+
+//#define mydebug
+//#define myddebug
+//#define mmydebug
+//#define myTrackdebug10
+
+// DIGI checks:
+//     #define mydigidebug10
+// Cluster checks
+//#define myClusterdebug10
+
+
+
 //================================================================
 
 
@@ -790,6 +811,195 @@ void RecFP420Test::update(const BeginOfEvent * evt) {
 #endif
   whichevent++;
 
+  /*
+
+
+  // int trackID = 0;
+  G4PrimaryParticle* thePrim=0;
+  G4double vz=-99990.;
+  G4double vx=-99990.,vy=-99990.;
+  
+  
+#ifdef ddebugprim0
+      std::cout << " -------------------------------------------------------------" << std::endl;
+      std::cout << " -------------------------------------------------------------" << std::endl;
+      std::cout << " -------------------------------------------------------------" << std::endl;
+#endif
+  // prim.vertex:
+  G4int nvertex = (*evt)()->GetNumberOfPrimaryVertex();
+  
+#ifdef ddebugprim0
+  if (nvertex !=1) std::cout << "RecFP420Test:NumberOfPrimaryVertex != 1 --> = " << nvertex<<std::endl;
+  std::cout << "NumberOfPrimaryVertex:" << nvertex << std::endl;
+#endif
+  int varia= 0,varia2= 0,varia3= 0;   // = 0 -all; =1 - MI; =2 - noMI
+  double phi= -100.,  phigrad= -100.,  th= -100.,  eta= -100.,  xi; 
+  double phi2= -100., phigrad2= -100., th2= -100., eta2= -100.,  xi2; 
+  double phi3= -100., phigrad3= -100., th3= -100., eta3= -100.,  xi3; 
+  double zmilimit= z4;
+  double XXX420;
+  double YYY420;
+  //if(zUnit==4000.) zmilimit= z3;
+  //if(zUnit==8000.) zmilimit= z2;
+  zmilimit= z3;// last variant
+#ifdef ddebugprim0
+  std::cout << "zmilimit= :" << zmilimit << std::endl;
+#endif
+// ==========================================================================================loop over vertexies
+    double zref, xref,  yref,  bxtrue,  bytrue,dref12,drefy12;
+    //ref = z1+8000.;     // info: center of 1st station at 0.
+  zref =    8000.;     // info: center of 1st station at 0.
+  double       xref2, yref2, bxtrue2, bytrue2;
+  double       xref3, yref3, bxtrue3, bytrue3;
+  double ZZZ420=-999999;
+  for (int iv = 0 ; iv<nvertex; ++iv) {
+    G4PrimaryVertex* avertex = (*evt)()->GetPrimaryVertex(iv);
+    if (avertex == 0) std::cout<<"RecFP420Test:End Of Event ERR: pointer to vertex = 0"<< std::endl;
+    G4int npart = avertex->GetNumberOfParticle();
+    if(npart !=1)std::cout << "RecFP420Test::warning: NumberOfPrimaryPart != 1--> = " <<npart<<std::endl;
+#ifdef ddebugprim0
+    std::cout << "number of particles for Vertex = " << npart << std::endl;
+#endif
+    if (npart==0)std::cout << "RecFP420Test: End Of Event ERR: no NumberOfParticle" << std::endl;
+    ZZZ420 = avertex->GetZ0();
+
+    if(ZZZ420 < -400000.){}
+// =======================================================over ZZZ420 vertexies
+    else if(npart == 1){
+#ifdef ddebugprim0
+      std::cout << "Vertex number :" <<iv << std::endl;
+      std::cout << "Vertex Z= :" <<(*evt)()->GetPrimaryVertex(iv)->GetZ0() << std::endl;
+      std::cout << "Vertex X= :" <<(*evt)()->GetPrimaryVertex(iv)->GetX0() << std::endl;
+      std::cout << "Vertex Y= :" <<(*evt)()->GetPrimaryVertex(iv)->GetY0() << std::endl;
+      
+#endif
+    XXX420 = avertex->GetX0();
+    YYY420 = avertex->GetY0();
+    
+    // =============================================================loop over particles of ZZZ420 vertex
+    for (int i = 0 ; i<npart; ++i) {
+      thePrim=avertex->GetPrimary(i);
+      G4ThreeVector   mom  = thePrim->GetMomentum();
+      if(fabs(mom.z()) > 100000.) {
+	if(i==0){
+	  phi = mom.phi();
+	  if (phi < 0.) phi += twopi;
+	  phigrad = phi*180./pi;
+	  th     = mom.theta();
+	  eta = -log(tan(th/2));
+	  xi = 1.-mom.mag()/7000000.;
+	  
+	  bxtrue = tan(th)*cos(phi);
+	  bytrue = tan(th)*sin(phi);
+	  
+	  xref = vx + (zref-vz)*bxtrue;
+	  yref = vy + (zref-vz)*bytrue;
+#ifdef ddebugprim0
+	  std::cout << "RecFP420Test: vx = " << XXX420 << " th=" << th << " phi=" << phi << " xref=" << xref << std::endl;
+	  std::cout << " tan(th) = " << tan(th) << " cos(phi)=" << cos(phi) << " bxtrue=" << bxtrue << std::endl;
+#endif
+	  //  if(  lastpo.z()< zmilimit || (lastpo.z()>zmilimit && lastpo.perp()> 100.) ) {
+#ifdef ddebugprim0
+	  std::cout << " lastpo.x()=" << lastpo.x() << std::endl;
+	  std::cout << " lastpo.y()=" << lastpo.y() << std::endl;
+	  std::cout << " lastpo.z()=" << lastpo.z() << std::endl;
+#endif
+	  if(  lastpo.z()< zmilimit ) {
+	    varia = 1;
+	  }
+	  else{
+	    varia = 2;
+	  } 
+	  
+	}
+	else if(i==1){
+	  phi2= mom.phi();
+	  if (phi2< 0.) phi2 += twopi;
+	  phigrad2 = phi2*180./pi;
+	  th2     = mom.theta();
+	  eta2 = -log(tan(th2/2));
+	  xi2 = 1.-mom.mag()/7000000.;
+	  // 2st primary track 
+	  bxtrue2= tan(th2)*cos(phi2);
+	  bytrue2= tan(th2)*sin(phi2);
+	  xref2= vx + (zref-vz)*bxtrue2;
+	  yref2= vy + (zref-vz)*bytrue2;
+#ifdef ddebugprim0
+	  std::cout << "RecFP420Test: vx = " <<  XXX420<< " th2=" << th2 << " phi2=" << phi2 << " xref2=" << xref2 << std::endl;
+	  std::cout << " tan(th2) = " << tan(th2) << " cos(phi2)=" << cos(phi2) << " bxtrue2=" << bxtrue2 << std::endl;
+#endif
+	  
+	  //  if(  lastpo.z()< zmilimit || (lastpo.z()>zmilimit && lastpo.perp()> 100.) ) {
+	  if(  lastpo.z()< zmilimit  ) {
+	    varia2= 1;
+	  }
+	  else{
+	    varia2= 2;
+	  } 
+	  
+	}
+	else if(i==2){
+	  phi3 = mom.phi();
+	  if (phi3 < 0.) phi3 += twopi;
+	  phigrad3 = phi3*180./pi;
+	  th3     = mom.theta();
+	  eta3 = -log(tan(th3/2));
+	  xi3 = 1.-mom.mag()/7000000.;
+	  // 3rd primary track 
+	  bxtrue3= tan(th3)*cos(phi3);
+	  bytrue3= tan(th3)*sin(phi3);
+	  xref3= vx + (zref-vz)*bxtrue3;
+	  yref3= vy + (zref-vz)*bytrue3;
+	  
+	  
+	  if(  lastpo.z()< zmilimit || (lastpo.z()>zmilimit && lastpo.perp()> 100.) ) {
+	    varia3= 1;
+	  }
+	  else{
+	    varia3= 2;
+	  } 
+	  
+	}
+	else {
+	  std::cout << "RecFP420Test:WARNING i>3" << std::endl; 
+	}// if(i
+	// =====================================
+	
+#ifdef ddebugprim0
+	std::cout << " i=" << i << "RecFP420Test: mom = " << mom 
+		  << std::endl;
+#endif
+	// primary vertex:
+	//	 G4double vx=0.,vy=0.,vz=0.;
+	vx = avertex->GetX0();
+	vy = avertex->GetY0();
+	vz = avertex->GetZ0();
+#ifdef ddebugprim0
+	std::cout << " -------------------------------------------------------------" << std::endl;
+	std::cout << "RecFP420Test: Vertex vx = " << vx << " vy=" << vy << " vz=" << vz << std::endl;
+	std::cout << " Vertex vx = " << vx << " vy=" << vy << "vz=" << vz << std::endl;
+	std::cout << " varia = " << varia << " varia2=" << varia2 << " i=" << i << std::endl;
+	std::cout << " -------------------------" << std::endl;
+#endif
+      }// if mom.z
+    }// loop over particles of ZZZ420 vertex  (int i
+    
+
+
+    //                                                                              .
+    dref12 = abs(xref2 - xref);
+    drefy12 = abs(yref2 - yref);
+#ifdef ddebugprim0
+//    std::cout << " dref12 = " << dref12 << std::endl;
+#endif
+
+
+    }//if(fabs(ZZZ420)
+  }// prim.vertex loop end
+  //                                                                              preparations:
+
+*/
+
 
 
 }
@@ -852,8 +1062,26 @@ void RecFP420Test::update(const EndOfTrack * trk) {
       //UserNtuples->fillp201(XV,SumStepl,1.);
     TheHistManager->GetHisto("XVall")->Fill(XV);
     TheHistManager->GetHisto("YVall")->Fill(YV);
+      //UserNtuples->fillp202(YV,SumStepl,1.);
+
+    //UserNtuples->fillg524(eta,1.);
+  
+      //UserNtuples->fillg534(SumStepl,1.);
+      //UserNtuples->fillg535(eta,SumStepl);
+      //UserNtuples->fillp207(eta,SumStepl,1.);
+      //UserNtuples->filld217(eta,SumStepl,1.);
+      //UserNtuples->filld220(phigrad,SumStepl,1.);
+      //UserNtuples->filld221(XV,SumStepl,1.);
+      //UserNtuples->filld222(YV,SumStepl,1.);
+      //UserNtuples->fillg537(SumStepc,1.);
+      //UserNtuples->fillg84(SumStepl,1.);
+
 // MI = (multiple interactions):
        if(tracklength < z4) {
+//        //UserNtuples->fillp208(eta,tracklength,1.);
+        //UserNtuples->filld218(eta,tracklength,1.);
+        //UserNtuples->fillg538(SumStepc,1.);
+	//UserNtuples->fillg85(SumStepl,1.);
        }
 
         // last step information
@@ -896,7 +1124,19 @@ void RecFP420Test::update(const EndOfTrack * trk) {
              //UserNtuples->fillg529(eta,1.);
 	   TheHistManager->GetHisto("XVz4")->Fill(XV);
 	   TheHistManager->GetHisto("YVz4")->Fill(YV);
+             //UserNtuples->fillg560(phigrad,1.);
+         //UserNtuples->fillg531(lastpo.x(),1.);
+         //UserNtuples->fillg532(lastpo.y(),1.);
+         //UserNtuples->fillg533(lastpo.z(),1.);
          }
+
+	 /*
+      float th_tr     = lastpo.theta();
+      float eta_tr    = -log(tan(th_tr/2));
+      float phi_tr    = lastpo.phi();
+      if (phi_tr < 0.) phi_tr += twopi;
+*/
+
 
 
   }//if(itrk == 1
@@ -925,14 +1165,26 @@ void RecFP420Test::update(const G4Step * aStep) {
   G4ThreeVector   vert_pos       = theTrack->GetVertexPosition(); // vertex ,where this track was created
   G4ThreeVector   vert_mom       = theTrack->GetVertexMomentumDirection();
   
-  //  double costheta =vert_mom.z()/sqrt(vert_mom.x()*vert_mom.x()+vert_mom.y()*vert_mom.y()+vert_mom.z()*vert_mom.z());
-  //  double theta = acos(min(max(costheta,double(-1.)),double(1.)));
-  //  float eta = -log(tan(theta/2));
-  //  double phi = -1000.;
-  //  if (vert_mom.x() != 0) phi = atan2(vert_mom.y(),vert_mom.x()); 
-  //  if (phi < 0.) phi += twopi;
+  double costheta =vert_mom.z()/sqrt(vert_mom.x()*vert_mom.x()+vert_mom.y()*vert_mom.y()+vert_mom.z()*vert_mom.z());
+  double theta = acos(min(max(costheta,double(-1.)),double(1.)));
+//  float eta = -log(tan(theta/2));
+  double phi = -1000.;
+  if (vert_mom.x() != 0) phi = atan2(vert_mom.y(),vert_mom.x()); 
+  if (phi < 0.) phi += twopi;
   //  double phigrad = phi*360./twopi;  
 
+//G4double       trackvel       = theTrack->GetVelocity();
+
+//std::cout << " trackstatus= " << trackstatus << " entot= " << entot  << std::endl;
+
+
+//#ifdef ddebugprim
+//     std::cout << " ====================================================================" << std::endl;
+//     std::cout << " ==========================================111111" << std::endl;
+//     std::cout << "RecFP420Test on aStep: Entered for track ID=" << id 
+//          << " ID Name= " << particleType
+//          << " at stepNumber= " << curstepnumber << std::endl;
+//#endif
 #ifdef ddebug
      std::cout << " ====================================================================" << std::endl;
      std::cout << " ==========================================111111" << std::endl;
@@ -958,8 +1210,13 @@ void RecFP420Test::update(const G4Step * aStep) {
 
 
   // step points:                                                                                         !
-  //G4double        stepl         = aStep->GetStepLength();
+  G4double        stepl         = aStep->GetStepLength();
   G4double        EnerDeposit   = aStep->GetTotalEnergyDeposit();
+  // pointers:                                                                                         !
+//G4VPhysicalVolume*  physvol       = theTrack->GetVolume();
+//G4VPhysicalVolume*  nextphysvol   = theTrack->GetNextVolume();
+//G4Material*       materialtr     = theTrack->GetMaterial();
+//G4Material*       nextmaterialtr = theTrack->GetNextMaterial();
 
   // preStep
   G4StepPoint*      preStepPoint = aStep->GetPreStepPoint(); 
@@ -972,10 +1229,27 @@ void RecFP420Test::update(const G4Step * aStep) {
 const G4VTouchable*  pre_touch    = preStepPoint->GetTouchable();
      int          pre_levels   = detLevels(pre_touch);
 
+//     G4String      pre_name1    = detName(pre_touch, pre_levels, 1);
+//     G4String      pre_name2    = detName(pre_touch, pre_levels, 2);
+//     G4String      pre_name3    = detName(pre_touch, pre_levels, 3);
         G4String name1[20]; int copyno1[20];
       if (pre_levels > 0) {
         detectorLevel(pre_touch, pre_levels, copyno1, name1);
       }
+
+//  G4LogicalVolume*   lv            = currentPV->GetLogicalVolume();
+//  G4Material*       mat           = lv->GetMaterial();
+//  std::string prenameVolume;
+//  prenameVolume.assign(prename,0,20);
+
+//   G4double         prebeta          = preStepPoint->GetBeta();
+//   G4double         precharge        = preStepPoint->GetCharge();
+//  G4double          prerad           = mat->GetRadlen();
+
+//  std::cout << " EneryDeposited = " << EnerDeposit << std::endl;
+//  std::cout << " prevolume = "      << prename << std::endl;
+////  std::cout << " posvolume = "      << aStep->GetPostStepPoint()->GetPhysicalVolume()->GetName() << std::endl;
+//  std::cout << " preposition = "    << preposition << std::endl; 
 #ifdef ddebug
       float th_tr     = preposition.theta();
       float eta_tr    = -log(tan(th_tr/2));
@@ -1001,37 +1275,425 @@ const G4VTouchable*  pre_touch    = preStepPoint->GetTouchable();
       }
 
 #endif
+     /*
+  // postStep
+  G4StepPoint*      postStepPoint  = aStep->GetPostStepPoint();   
+  G4ThreeVector     posposition    = postStepPoint->GetPosition();	
+  G4ThreeVector     poslocalpoint  = theTrack->GetTouchable()->GetHistory()->
+                                           GetTopTransform().TransformPoint(posposition);
+  G4VPhysicalVolume* poscurrentPV      = postStepPoint->GetPhysicalVolume();
+  G4String         posname        = poscurrentPV->GetName();
+//  G4LogicalVolume*   poslv             = poscurrentPV->GetLogicalVolume();
+//  G4Material*       posmat            = poslv->GetMaterial();
+//  std::string posnameVolume;
+//  posnameVolume.assign(posname,0,20);
+
+#ifdef ddebug
+     std::cout << "============posStep: information:============" << std::endl;
+     std::cout << " posposition = "    << posposition
+          << " poslocalpoint = "  << poslocalpoint
+          << " posvolume = "      << posname
+       //          << " posnameVolume = "  << posnameVolume 
+          << std::endl;
+
+     std::cout << " ==========================================" << std::endl;
+#endif
+
+
+*/
+
+//      //
+//      //
+
+      // 24.01.2006:
+// tr     :   id    parentID   trackstatus   tracklength   curstepnumber  entot  vert_pos  
+// st     :   stepl EnerDeposit 
+// prestep:   preposition   prevolume = SBSTm SIDETL SIDETR       name= SISTATION  copy= 1,2,3    name= SIPLANE  copy= 1..5..10
+
+// gen_track:
+//  id=1    parentID=1   trackstatus=0,2   tracklength(accumulated)  curstepnumber   entot  vert_pos 
       if ( id == 1 ) {
 	// on 1-st step:
+
+
+
 	if (curstepnumber == 1 ) {
 	  entot0 = entot;
+	  //UserNtuples->fillg519(entot0,1.);
+	  
 	}
 	
+	// on every step:
+	
+	// for Copper:
+	if(prename == "SBST" ) {
+	  SumStepc += stepl;
+	  // =========
+	}
+	// for ststeel:
+	//	 if(prename == "SBSTs") {
+	if(prename == "SBSTs" ) {
+	  SumStepl += stepl;
+	  // =========
+	}
+	// =========
+	// =========
+	
+	// exclude last track point if it is in SD (MI was started their)
+	if (trackstatus != 2 ) {
+	  // for SD:   Si Det.:   SISTATION:SIPLANE:(SIDETL+BOUNDDET        +SIDETR + CERAMDET)
+	  if(prename == "SIDETL" || prename == "SIDETR" ) {
+	    if(prename == "SIDETL") {
+	      //UserNtuples->fillg569(EnerDeposit,1.);
+	    }
+	    if(prename == "SIDETR") {
+	      //UserNtuples->fillg570(EnerDeposit,1.);
+	    }
+	    
+	    //double numbcont = 10.*(copyno1[2]-1)+copyno1[3];
+	    
+	    // =========
+	    double   xx    = preposition.x();
+	    double   yy    = preposition.y();
+	    double   zz    = preposition.z();
+	    // =========
+	    //UserNtuples->fillg580(theta,1.);
+	    //UserNtuples->fillg07(phigrad,1.);
+	    double xPrimAtZhit = vert_pos.x() + (zz-vert_pos.z())*tan(theta)*cos(phi);
+	    double yPrimAtZhit = vert_pos.y() + (zz-vert_pos.z())*tan(theta)*sin(phi);
+	    // =========
+	    double  dx = xPrimAtZhit - xx;
+	    double  dy = yPrimAtZhit - yy;
+	    // =========
+	    
+	    //	   //UserNtuples->fillp212(numbcont,dx,1.);
+	    //	   //UserNtuples->fillp213(numbcont,dy,1.);
+	    // =========
+	    
+	    // last step of current SD Volume:
+	    G4String posname = aStep->GetPostStepPoint()->GetPhysicalVolume()->GetName();
+	    if((prename == "SIDETL" && posname != "SIDETL") || (prename == "SIDETR" && posname != "SIDETR")) {
+	      if(name1[2] == "SISTATION" ) {
+		//UserNtuples->fillg539(copyno1[2],1.);
+	      }
+	      if(name1[3] == "SIPLANE" ) {
+		//UserNtuples->fillg540(copyno1[3],1.);
+	      }
+	      
+	      if(prename == "SIDETL") {
+		//UserNtuples->fillg541(EnerDeposit,1.);
+		//UserNtuples->fillg561(numbcont,1.);
+		if(copyno1[2]<2) {
+		  //UserNtuples->fillg571(dx,1.);
+		}
+		else if(copyno1[2]<3) {
+		  //UserNtuples->fillg563(dx,1.);
+		  TheHistManager->GetHisto("MSC2X")->Fill(dx);
+		  if(copyno1[3]<2) {
+		  }
+		  else if(copyno1[3]<3) {
+		    //UserNtuples->fillg572(dx,1.);
+		  }
+		  else if(copyno1[3]<4) {
+		    //UserNtuples->fillg573(dx,1.);
+		  }
+		  else if(copyno1[3]<5) {
+		    //UserNtuples->fillg574(dx,1.);
+		  }
+		  else if(copyno1[3]<6) {
+		    //UserNtuples->fillg575(dx,1.);
+		  }
+		  else if(copyno1[3]<7) {
+		    //UserNtuples->fillg576(dx,1.);
+		  }
+		  else if(copyno1[3]<8) {
+		    //UserNtuples->fillg577(dx,1.);
+		  }
+		  else if(copyno1[3]<9) {
+		    //UserNtuples->fillg578(dx,1.);
+		  }
+		  else if(copyno1[3]<10) {
+		    //UserNtuples->fillg579(dx,1.);
+		  }
+		}
+		else if(copyno1[2]<4) {
+		  //UserNtuples->fillg565(dx,1.);
+		  TheHistManager->GetHisto("MSC3X")->Fill(dx);
+		}
+		else if(copyno1[2]<5) {
+		  //UserNtuples->fillg567(dx,1.);
+		}
+	      }
+	      if(prename == "SIDETR") {
+		//UserNtuples->fillg542(EnerDeposit,1.);
+		//UserNtuples->fillg562(numbcont,1.);
+		if(copyno1[2]<2) {
+		  //UserNtuples->fillg581(dy,1.);
+		}
+		else if(copyno1[2]<3) {
+		  //UserNtuples->fillg564(dy,1.);
+		  TheHistManager->GetHisto("MSC2Y")->Fill(dy);
+		  if(copyno1[3]<2) {
+		  }
+		  else if(copyno1[3]<3) {
+		    //UserNtuples->fillg582(dy,1.);
+		  }
+		  else if(copyno1[3]<4) {
+		    //UserNtuples->fillg583(dy,1.);
+		  }
+		  else if(copyno1[3]<5) {
+		    //UserNtuples->fillg584(dy,1.);
+		  }
+		  else if(copyno1[3]<6) {
+		    //UserNtuples->fillg585(dy,1.);
+		  }
+		  else if(copyno1[3]<7) {
+		    //UserNtuples->fillg586(dy,1.);
+		  }
+		  else if(copyno1[3]<8) {
+		    //UserNtuples->fillg587(dy,1.);
+		  }
+		  else if(copyno1[3]<9) {
+		    //UserNtuples->fillg588(dy,1.);
+		  }
+		  else if(copyno1[3]<10) {
+		    //UserNtuples->fillg589(dy,1.);
+		  }
+		}
+		else if(copyno1[2]<4) {
+		  //UserNtuples->fillg566(dy,1.);
+		  TheHistManager->GetHisto("MSC3Y")->Fill(dy);
+		}
+		else if(copyno1[2]<5) {
+		  //UserNtuples->fillg568(dy,1.);
+		}
+	      }
+	      
+	    }
+	  }
+	  // end of prenames SIDETL // SIDETR
+	}
+	// end of trackstatus != 2
+	
+	
       // deposition of energy on steps along primary track
+      //UserNtuples->fillg500(EnerDeposit,1.);
       // collect sum deposited energy on all steps along primary track
 	SumEnerDeposit += EnerDeposit;
 	// position of step for primary track:
+	//UserNtuples->fillg501(preposition.x(),1.);
+	//UserNtuples->fillg502(preposition.y(),1.);
+	//UserNtuples->fillg503(preposition.z(),1.);
 	TheHistManager->GetHisto("XenDep")->Fill(preposition.x(),EnerDeposit);
 	TheHistManager->GetHisto("YenDep")->Fill(preposition.y(),EnerDeposit);
 	TheHistManager->GetHisto("ZenDep")->Fill(preposition.z(),EnerDeposit);
-
+	//UserNtuples->fillg504(preposition.x(),EnerDeposit);
+	//UserNtuples->fillg505(preposition.y(),EnerDeposit);
+	//UserNtuples->fillg506(preposition.z(),EnerDeposit);
+	// 2D step coordinates weighted by energy deposited on step
+	//      //UserNtuples->fillp201(preposition.x(),preposition.y(),EnerDeposit);
+	//      //UserNtuples->fillp202(preposition.x(),preposition.z(),EnerDeposit);
+	//      //UserNtuples->fillp203(preposition.y(),preposition.z(),EnerDeposit);
+	//UserNtuples->filld204(preposition.x(),preposition.y(),EnerDeposit);
 	TheHistManager->GetHisto2("2Dxy1")->Fill(preposition.x(),preposition.y(),EnerDeposit);
 	TheHistManager->GetHisto2("2Dxz1")->Fill(preposition.x(),preposition.z(),EnerDeposit);
+	//UserNtuples->filld205(preposition.x(),preposition.z(),EnerDeposit);
+	//UserNtuples->filld206(preposition.y(),preposition.z(),EnerDeposit);
+	//UserNtuples->filld223(preposition.y(),preposition.z(),EnerDeposit);
 	// last step of primary track
 	if (trackstatus == 2 ) {
-          tracklength0 = tracklength;// primary track length 
+	  // primary track length 
+	  //      //UserNtuples->fillg508(tracklength,1.);
+          tracklength0 = tracklength;
+	  // how many steps primary track consist 
+	  //UserNtuples->fillg509(curstepnumber,1.);
+	  // tot. energy of primary track at the end of trajectory(before disappeare)
+	  //UserNtuples->fillg510((entot0-entot),1.);
+	  //UserNtuples->fillg520((entot0-entot),1.);
 	}
+
+
 
       }//     if ( id == 1
       // end of primary track !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       
 
       if(trackmom.z() > 100000. && curstepnumber == 1) {
+	//  if (parentID == 1 && curstepnumber == 1) {
+	// particles deposit their energy along primary track
 	numofpart += 1;
+	// energy of radiated particle
+	//UserNtuples->fillg511(entot,1.);
+	// coordinates  of radiated particle
+	//UserNtuples->fillg512(vert_pos.x(),1.);
+	//UserNtuples->fillg513(vert_pos.y(),1.);
+	//UserNtuples->fillg514(vert_pos.z(),1.);
+	//UserNtuples->fillg515(vert_pos.x(),entot);
+	//UserNtuples->fillg516(vert_pos.y(),entot);
+	//UserNtuples->fillg517(vert_pos.z(),entot);
+	
+	//UserNtuples->filld214(vert_pos.x(),vert_pos.y(),1.);
+	//UserNtuples->filld215(vert_pos.x(),vert_pos.z(),1.);
+	//UserNtuples->filld216(vert_pos.y(),vert_pos.z(),1.);
+	//UserNtuples->filld219(vert_pos.y(),vert_pos.z(),1.);
+	//UserNtuples->filld224(vert_pos.y(),vert_pos.z(),1.);
+	if(prename == "SBST" ) {
+	  //UserNtuples->filld225(vert_pos.y(),vert_pos.z(),1.);
+	}
+	if(prename == "SBSTs" ) {
+	  //UserNtuples->filld226(vert_pos.y(),vert_pos.z(),1.);
+	}
+	/*
+	// number of secondary particles deposited their energy along primary track
+	if (id == 2 ) {
+	//UserNtuples->fillg518(numofpart,1.);
+	if(tracklength0 < z4) {
+	//UserNtuples->fillg536(numofpart,1.);
+	// 2D secondary particle vertex coordinates weighted by energy radiated
+	//      //UserNtuples->fillp211(vert_pos.x(),vert_pos.y(),entot);
+	//      //UserNtuples->fillp212(vert_pos.x(),vert_pos.z(),entot);
+	//      //UserNtuples->fillp213(vert_pos.y(),vert_pos.z(),entot);
+	//
+	//      //UserNtuples->filld214(vert_pos.x(),vert_pos.y(),1.);
+	//      //UserNtuples->filld215(vert_pos.x(),vert_pos.z(),1.);
+	//      //UserNtuples->filld216(vert_pos.y(),vert_pos.z(),1.);
+	//      //UserNtuples->filld219(vert_pos.y(),vert_pos.z(),1.);
+	
+	}
+	}
+	*/
       }// if (parentID == 1 && curstepnumber == 1)
       
       
+
+// if (phi_hit < 0.) phi_hit += twopi;
+//      //
+//      //
+
+/*
+
+    if (trkInfo->getIDonCaloSurface() != 0) {
+      if (trkInfo->caloIDChecked() == false) {
+        const G4ThreeVector pos = theTrack->GetPosition();
+         rinCalo = 100.; zinCalo=7500.;
+        if (pos.perp() < rinCalo && abs(pos.z()) < zinCalo) {
+          trkInfo->setIDonCaloSurface(0);
+        } else {
+          trkInfo->setCaloIDChecked(true);
+        }
+      }
+    }
+
+
+  if (trkInfo->getIDonCaloSurface() == 0) {
+
+      G4StepPoint*        preStepPoint = aStep->GetPreStepPoint(); 
+      const G4VTouchable*  pre_touch    = preStepPoint->GetTouchable();
+      int               pre_levels   = detLevels(pre_touch);
+      G4String           pre_name     = detName(pre_touch, pre_levels, 3);
+    
+#ifdef ddebug
+     std::cout << "RecFP420Test on aStep: for ID onCaloSurface = 0 have : " << std::endl;
+     std::cout << " ==========================================222222" << std::endl;
+     std::cout << "RecFP420Test on aStep: Previous volume with " << pre_levels
+          << " levels at Level 3 " << pre_name << std::endl;
+      if (pre_levels > 0) {
+        G4String name1[20]; int copyno1[20];
+        detectorLevel(pre_touch, pre_levels, copyno1, name1);
+        for (int i1=0; i1<pre_levels; i1++) 
+          std::cout << " " << i1 << " " << name1[i1] << " " << copyno1[i1];
+          std::cout << std::endl;
+     std::cout << " ==========================================" << std::endl;
+      }
+#endif
+      G4StepPoint*            postStepPoint = aStep->GetPostStepPoint();   
+      const G4VTouchable*      post_touch    = postStepPoint->GetTouchable();
+      int                   post_levels   = detLevels(post_touch);
+      if (post_levels == 0) return;
+      G4String               post_name     = detName(post_touch, post_levels, 3);
+#ifdef ddebug
+     std::cout << " ==========================================333333" << std::endl;
+      std::cout << "RecFP420Test on aStep: Post volume with " << post_levels 
+           << " levels at Level 3 " << post_name << std::endl;
+      if (post_levels > 0) {
+        G4String name2[20]; int copyno2[20];
+        detectorLevel(post_touch, post_levels, copyno2, name2);
+        for (int i2=0; i2<post_levels; i2++) 
+          std::cout << " " << i2 << " " << name2[i2] << " " << copyno2[i2];
+           std::cout << std::endl;
+      }
+     std::cout << " ==========================================" << std::endl;
+#endif
+        lastTrackID = -1;
+      if (post_name == "CALO" && 
+          (pre_name == "TRAK" || (theTrack->GetCurrentStepNumber()==1))) {
+        trkInfo->setIDonCaloSurface(id);
+        lastTrackID = id;
+        if (theTrack->GetKineticEnergy()/MeV > 0.01)
+          trkInfo->putInHistory();
+#ifdef ddebug
+     std::cout << " ==========================================444444" << std::endl;
+        std::cout << "RecFP420Test on aStep: set ID on Calo surface to " << id 
+                      << " of a Track with Kinetic Energy " 
+                      << theTrack->GetKineticEnergy()/MeV << " MeV" << std::endl;
+     std::cout << " ==========================================" << std::endl;
+#endif
+      }
+  }
+
+*/
+
+
+  // garbage:
+  //  float eta = 0.5 * log( (1.+vert_mom.z()) / (1.-vert_mom.z()) );
+  //  float phi = atan2(vert_mom.y(),vert_mom.x());
+  //float pInit=sqrt(pow(vert_mom.x(),2.)+pow(vert_mom.y(),2.)+pow(vert_mom.z,2.));
+  //float costheta =vert_mom.z()/pInit;
+  //if (vert_mom.x() != 0) phi = atan(vert_mom.y()/vert_mom.x()); 
+
+
+     
+    /*
+//   if(prenameVolume == "SIDETL" || prenameVolume == "SIDETR" || prenameVolume == "SBST")  {  
+
+//    float bThreshold = 0.67;
+//    if(charge != 0. && beta > bThreshold ) {
+//      // for hit points(not vertex of their born)
+      float th_hit    = preposition.theta();
+      float eta_hit = -log(tan(th_hit/2));
+      float phi_hit   = preposition.phi();
+      if (phi_hit < 0.) phi_hit += twopi;
+      //UserNtuples->fillg40(eta_hit,stepl);
+      //UserNtuples->fillg41(eta_hit,1.);
+      //UserNtuples->fillg42(phi_hit,stepl);
+      //UserNtuples->fillg43(phi_hit,1.);
+      //UserNtuples->fillg44(phi_hit,EnerDeposit);
+      //UserNtuples->fillg45(phi_hit,1.);
+      //UserNtuples->fillg46(eta_hit,EnerDeposit);
+      //UserNtuples->fillg47(eta_hit,1.);
+
+//    }
+
+//   }
+   */
+
   // ==========================================================================
+
+  //if(nameVolume == "SIDETL" || nameVolume == "SIDETR" || nameVolume == "SBST") {
+  //   std::cout <<" ===> calo step info <=== point = " << preposition 
+  //	 <<" eta/phi = " << eta <<" " << phi
+  //	 <<" prelocalpoint = " << prelocalpoint
+  //	 <<" volume = " << name
+  //	 <<" nameVolume = " << nameVolume
+  //	 <<" rad length = " << rad 
+  //	 <<" stepl = " << stepl
+  //	 <<" particleType = " << particleType
+  //	 <<" primaryID = " << primaryID << std::endl;
+  // }
+
+  
+  // ==========================================================================
+
 }
 // ==========================================================================
 // ==========================================================================
@@ -1117,6 +1779,7 @@ void RecFP420Test::update(const EndOfEvent * evt) {
 // ==========================================================================================loop over vertexies
   double zref=-100., xref=-100., yref=-100., bxtrue=-100., bytrue=-100.,dref12=-100.,drefy12=-100.;
     //ref = z1+8000.;     // info: center of 1st station at 0.
+  zref =    8000.;     // info: center of 1st station at 0.
   double       xref2=-100., yref2=-100., bxtrue2=-100., bytrue2=-100.;
   double       xref3=-100., yref3=-100., bxtrue3=-100., bytrue3=-100.;
   double ZZZ420=-999999;
@@ -1124,9 +1787,10 @@ void RecFP420Test::update(const EndOfEvent * evt) {
     G4PrimaryVertex* avertex = (*evt)()->GetPrimaryVertex(iv);
     if (avertex == 0) std::cout<<"RecFP420Test:End Of Event ERR: pointer to vertex = 0"<< std::endl;
     G4int npart = avertex->GetNumberOfParticle();
-    TheHistManager->GetHisto("ZZZall")->Fill(avertex->GetZ0());
+    ZZZ420 = avertex->GetZ0();
+    TheHistManager->GetHisto("ZZZall")->Fill(ZZZ420);
 
-    if(avertex->GetZ0() < 400000.){
+    if(ZZZ420 < 400000.){
       // temporary:
      // if(npart==1) {
 //	G4ThreeVector   mom  = avertex->GetPrimary(0)->GetMomentum();
@@ -1149,8 +1813,6 @@ void RecFP420Test::update(const EndOfEvent * evt) {
     TheHistManager->GetHisto("ZZZ420")->Fill(ZZZ420);
     XXX420 = avertex->GetX0();
     YYY420 = avertex->GetY0();
-    ZZZ420 = avertex->GetZ0();
-    zref =    8000. + z420 - ZZZ420;     // info: center of 1st station at 0.
     TheHistManager->GetHisto("XXX420")->Fill(XXX420);
     TheHistManager->GetHisto("YYY420")->Fill(YYY420);
     TheHistManager->GetHisto2("2DXY420")->Fill(XXX420,YYY420);
@@ -1364,7 +2026,50 @@ void RecFP420Test::update(const EndOfEvent * evt) {
 	    
 
 
+
+
+
+
+			  // if (thePrim != 0 && dref12> 4.) {
+			  //   theCAFI->entries()
+			  //      inline G4ParticleDefinition * GetG4code() const
+			  //      inline G4PrimaryParticle * GetNext() const
+			  //      inline G4PrimaryParticle * GetDaughter() const
+// prim.vertex
+      //      int ivert = 0 ;
+      //    G4PrimaryVertex* avertex = (*evt)()->GetPrimaryVertex(ivert);
+      // G4double vx=0.,vy=0.,vz=0.;
+      //vx = avertex->GetX0();
+      //vy = avertex->GetY0();
+      //vz = avertex->GetZ0();
+  //
+      // number of secondary particles deposited their energy along primary track
+           //UserNtuples->fillg518(numofpart,1.);
+       //  if(lastpo.z()<z4 && lastpo.perp()< 100.) {
+           //UserNtuples->fillg536(numofpart,1.);
+	// }
+  //
+
+      // direction !!!
+      //G4ThreeVector   mom  = thePrim->GetMomentum();
+      //double phi = mom.phi();
+      ////    double phi = atan2(mom.y(),mom.x());
+      //if (phi < 0.) phi += twopi;
+      //double phigrad = phi*180./pi;
+      //double th     = mom.theta();
+      //double eta = -log(tan(th/2));
+// works OK:
+//      double  costheta =mom.z()/sqrt(mom.x()*mom.x()+mom.y()*mom.y()+mom.z()*mom.z());
+//      double theta = acos(min(max(costheta,double(-1.)),double(1.)));
+
   // ==========================================================================
+#ifdef ddebugprim
+      int pdfcode  = thePrim->GetPDGcode();
+      int trackID  = thePrim->GetTrackID();
+    std::cout << "===============================================================start " << std::endl;
+    std::cout << "pdfcode = " << pdfcode << "trackID = " << trackID << std::endl;
+    std::cout << "numofpart = " << numofpart << "SumEnerDeposit = " << SumEnerDeposit << std::endl;
+#endif
 
   // hit map for FP420
   // ==================================
@@ -1391,19 +2096,93 @@ void RecFP420Test::update(const EndOfEvent * evt) {
     }
 	 TheHistManager->GetHisto("NHitsAll")->Fill(theCAFI->entries());
 
+  // access to the G4 hit collections ----> variant 2: give 0 hits
+//  FP420G4HitCollection *   theCAFI;
+//  theCAFI = new FP420G4HitCollection();
+  // ==========================================================================
+  //   Silicon Hit collection start
+    //0) if particle goes into flat beam pipe below detector:
+    //nt varia ;   // = 0 -all; =1 - MI; =2 - noMI
+    //                      Select MI or noMI over all 3 stations
+    // 1)MI:
+  //     if particle goes through window into detector:
+  // lastpoint of track in lateral dir. outside the detector and inside in z
+  // lastpoint of track in lateral dir. outside the detector and inside in z
+  // for all except zzzmarta.xml
+//    if(  lastpo.z()<z4  ||  abs(lastpo.x())> 5. || lastpo.y()< 10.2 || lastpo.y()>30.2   ) {
+// for zzzmarta.xml
+//    if(  lastpo.z()<z4  ||  abs(lastpo.x())> 10. || lastpo.y()< 3.2 || lastpo.y()>43.2   ) {
+//    if(  lastpo.z()<z4  ||  abs(lastpo.y())> 10. || lastpo.x()< 3.2 || lastpo.x()>43.2   ) {
+//    if(  lastpo.z()<z4  ||  abs(lastpo.y())> 10. || lastpo.x()> -12. || lastpo.x()<-40.   ) {
+//    if(  lastpo.z()<z4    ) {
+//
+//
+//  if(  lastpo.z()< z4 || (lastpo.z()>z4 && lastpo.perp()> 100.)     ) {
+  if(  lastpo.z()< zmilimit || (lastpo.z()>zmilimit && lastpo.perp()> 100.)     ) {
+    //
+    //
+//  if(  lastpo.z()<z4 && lastpo.perp()< 100. ) {
+//  if(lastpo.z()<z4  || lastpo.perp()> 45.) {
+	// varia = 1;
+  }
+  else{
+    // 2)   no MI start in detector:
+        // varia = 2;
+	 //	 if(numofpart >= 5 ) varia = 1;
+  }   // no MI end:
+
+  if(varia == 1){
+	 TheHistManager->GetHisto("NumberHitsOnlyMI")->Fill(theCAFI->entries());
+  }
+  else {
+	 TheHistManager->GetHisto("NumberHitsNoMI")->Fill(theCAFI->entries());
+  }
 
 
 
 
+ // if(varia == 1 && theCAFI->entries() <= (pn0-1)*2*(sn0-1) ) varia = 2;
+
+
+
+
+  if(varia == 1){
+	 TheHistManager->GetHisto("NumofpartOnlyMI")->Fill(numofpart);
+  }
+  else {
+	 TheHistManager->GetHisto("NumofpartNoMI")->Fill(numofpart);
+  }
   varia = 0;
   if( varia == 0  ) {
     
+  // take all:
+     //  if( varia == 1 || varia == 2) {
+
+  // take MI only:
+       //  if( varia == 1) {
+
+  // take noMI:
+	 //if( varia == 2 ) {
+//	 if( varia == 2 && varia2 == 2) {
+
+    //        if( varia == 2 && numofpart < 5 ) {
+    
+// .............
+// number of hits < 50
+//    if(theCAFI->entries() <50) {
+//    if(theCAFI->entries() > 0) {
+//    if(theCAFI->entries() > -1) {
+// .............
+    int nhit11 = 0, nhit12 = 0, nhit13 = 0 ;
     double  totallosenergy= 0.;
     int AATest[80];
     for (int j=0; j<80; j++) {
       AATest[j]=0;
     }
 
+#ifdef ddebugprim
+      std::cout << "RecFP420Test: theCAFI->entries = " << theCAFI->entries() << std::endl;
+#endif
    for (int j=0; j<theCAFI->entries(); j++) {
     FP420G4Hit* aHit = (*theCAFI)[j];
 
@@ -1411,8 +2190,8 @@ void RecFP420Test::update(const EndOfEvent * evt) {
     Hep3Vector hitExitLocalPoint = aHit->getExitLocalP();
     Hep3Vector hitPoint = aHit->getEntry();
     unsigned int unitID = aHit->getUnitID();
-    /*
     int trackIDhit  = aHit->getTrackID();
+    /*
     double  elmenergy =  aHit->getEM();
     double  hadrenergy =  aHit->getHadr();
     double incidentEnergyHit  = aHit->getIncidentEnergy();
@@ -1439,7 +2218,8 @@ void RecFP420Test::update(const EndOfEvent * evt) {
     float vyget = aHit->getVy();
     float vzget = aHit->getVz();
     */
-
+    //        if(theCAFI->entries() == 20){
+    //     std::cout << "2020202020202020202020202020202020202020 " << std::endl;
 #ifdef mmydebug
 
     std::cout << "======================Hit Collection" << std::endl;
@@ -1461,16 +2241,34 @@ void RecFP420Test::update(const EndOfEvent * evt) {
     std::cout << "parentID = " << parentID << "vxget = " << vxget << std::endl;
     std::cout << "vyget = " << vyget << "vzget = " << vzget << std::endl;
 #endif
-
+//////////    break;
+//    }
     //double th_hit    = hitPoint.theta();
     //double eta_hit = -log(tan(th_hit/2));
     double phi_hit   = hitPoint.phi();
     if (phi_hit < 0.) phi_hit += twopi;
+    //double phigrad_hit = phi_hit*180./pi;
+    //UserNtuples->fillg60(eta_hit,losenergy);
+    //UserNtuples->fillg61(eta_hit,1.);
+    //UserNtuples->fillg62(phigrad_hit,losenergy);
+    //UserNtuples->fillg63(phigrad_hit,1.);
+
+    // double   xx    = hitPoint.x();
+    // double   yy    = hitPoint.y();
     double   zz=-999999.;
     zz    = hitPoint.z();
     if (verbosity > 2) {
       std::cout << "RecFP420Test:zHits = " << zz << std::endl;
     }
+    //    double   rr    = hitPoint.perp();
+    /*
+      if(aHit->getTrackID() == 1) {
+	  emu += aHit->getEnergyDeposit();} else {
+	  erest += aHit->getEnergyDeposit();}
+    */
+
+    //collect lost in Si en.of hits in every plane and put it into themap[]     
+	     //UserNtuples->fillg30(losenergy,1.);
     themap[unitID] += losenergy;
 	totallosenergy += losenergy;
 
@@ -1489,16 +2287,37 @@ void RecFP420Test::update(const EndOfEvent * evt) {
     std::cout << "RecFP420Test:ERROR: zside = " << zside  << " sector = " << sector  << " zmodule = " << zmodule  << " det = " << det  << std::endl;
     }
 
+    //  float zcurrent = (pn0-1)*(ZSiStep/2)-ZSiPlane/2  + (zmodule-1)*ZSiStep + (sector-1)*zUnit;  // (np0-1)*[ZSiStep]/2-[ZSiPlane]/2 + (zmodule-1)*[ZSiStep] + (sector-1)*[ZUnit] --> beg. of 1st plane
+    //   float kplane = (zmodule-(pn0-3));
+    //    double kplane = -(pn0-2)/2+(zmodule-1); 
     double kplane = -(pn0-1)/2+(zmodule-1); 
+    // double zcurrent = -150. -ZSiPlane/2  + kplane*ZSiStep + (sector-1)*zUnit;  
+    // double zcurrent = -150. -ZSiPlane -(ZSiStep-ZSiPlane)/2  + kplane*ZSiStep + (sector-1)*zUnit;  
+
+
     double zdiststat = 0.;
     if(sector==2) zdiststat = zD2;
     if(sector==3) zdiststat = zD3;
     double zcurrent = -150. + z420 +(ZSiStep-ZSiPlane)/2  + kplane*ZSiStep + zdiststat;  
+    //double zcurrent = -150. +(ZSiStep-ZSiPlane)/2  + kplane*ZSiStep + (sector-1)*zUnit;  
+
+
+
+
+
+
+        // (np0-1)*[ZSiStep]/2-[ZSiPlane]/2 + (zmodule-1)*[ZSiStep] + (sector-1)*[ZUnit] --> beg. of 1st plane
+
+    //    std::cout << " zside = " << zside  << " sector = " << sector  << " zmodule = " << zmodule  << std::endl;
+    //  std::cout << " zcurrent = " << zcurrent << std::endl;
+   //   std::cout << " zcurrent1 = " << zcurrent1 << std::endl;
+   //  std::cout << " ZGapLDet+ZSiDetL/2 = " << ZGapLDet+ZSiDetL/2 << std::endl;
 
     if(zside==1){
       zcurrent += (ZGapLDet+ZSiDetL/2);
     }
     if(zside==2){
+      //     zcurrent += (ZGapLDet+ZSiDetL+ZBoundDet+ZSiDetR/2);
       zcurrent += (ZGapLDet+ZSiDetR/2)+ZSiPlane/2;
                 }     
 
@@ -1507,19 +2326,68 @@ void RecFP420Test::update(const EndOfEvent * evt) {
       G4ThreeVector middle = (hitExitLocalPoint+hitEntryLocalPoint)/2.;
       G4ThreeVector mid = (hitExitLocalPoint-hitEntryLocalPoint)/2.;
 
+#ifdef mmydebug
+    int sScale = 2*(pn0-1); // intindex is a continues numbering of FP420
+    int zScale = 2;   unsigned int intindex = sScale*(sector - 1)+zScale*(zmodule - 1)+zside; //intindex=1-30:X,Y,X,Y,X,Y...
+
+// int zScale = 10;   unsigned int intindex = sScale*(sector - 1)+zScale*(zside - 1)+zmodule; //intindex=1-30:XXXXXXXXXX,YYYYYYYYYY,...
+    std::cout << " ***********RecFP420Test::1    index = " << unitID  << " iu = " << intindex  << std::endl;
+    std::cout << " zside = " << zside  << " sector = " << sector  << " zmodule = " << zmodule  << std::endl;
+    std::cout << " hitPoint.z() = " << hitPoint.z() << std::endl;
+    std::cout << " hitExitLocalPoint   = " << hitExitLocalPoint  << std::endl;
+    std::cout << " hitEntryLocalPoint   = " << hitEntryLocalPoint  << std::endl;
+    std::cout << " hitPoint   = " << hitPoint  << std::endl;
+    std::cout << " middle.x() = " << middle.x() << " middle.y() = " << middle.y() << " middle.z() = " << middle.z() << std::endl;
+    std::cout << " mid.x() = " << mid.x() << " mid.y() = " << mid.y() << " mid.z() = " << mid.z() << std::endl;
+    std::cout << " themapz+ZSiDetL/2 = " << hitPoint.z()+ZSiDetL/2 << std::endl;
+    std::cout << " zcurrent = " << zcurrent << std::endl;
+    //std::cout << "  ZSiPlane= " << ZSiPlane << "  ZSiStep= " << ZSiStep << "  zUnit= " << zUnit << std::endl;
+    std::cout << "  ZSiPlane= " << ZSiPlane << "  ZSiStep= " << ZSiStep << "  zD2= " << zD2 << "  zD3= " << zD3 << std::endl;
+    std::cout << "  ZGapLDet= " << ZGapLDet << "  ZSiDetL= " << ZSiDetL << std::endl;
+#endif
 //
-      if (verbosity > 2) {
-	std::cout << "RecFP420Test:check " << std::endl;
-	std::cout << " zside = " <<zside<< " sector = " <<sector<< " zmodule = " << zmodule<< std::endl;
-	std::cout << " hitPoint.z()+ mid.z() = " <<  double (hitPoint.z()+ mid.z()-z420) << std::endl;
-	std::cout << " zcurrent = " << double (zcurrent-z420) << " det = " << det << std::endl;
-	std::cout << " diff = " << double (hitPoint.z()+ mid.z()- zcurrent) << std::endl;
-      }
+    if (verbosity > 2) {
+      std::cout << "RecFP420Test:check " << std::endl;
+    std::cout << " zside = " << zside  << " sector = " << sector  << " zmodule = " << zmodule  << std::endl;
+    }
 //=======================================
+//=======================================!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//=======================================
+#ifdef mmydebug
+    std::cout << " zside = " << zside  << " sector = " << sector  << " zmodule = " << zmodule  << std::endl;
+    std::cout << " hitPoint.z()+ mid.z() = " <<  double (hitPoint.z()+ mid.z()-z420) << std::endl;
+    std::cout << " zcurrent = " << double (zcurrent-z420) << " det = " << det << std::endl;
+    std::cout << " diff = " << double (hitPoint.z()+ mid.z()- zcurrent) << std::endl;
+
+#endif
+
+
+
+
+
+//=======================================!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//=======================================
+
      //   themapz[unitID]  = hitPoint.z()+ mid.z(); // this line just for studies
       themapz[unitID]  = zcurrent;// finally must be this line !!!
 
+#ifdef ddebugprim
+      std::cout << "RecFP420Test:Z of SimHit = " << hitPoint.z()+ mid.z() << std::endl;
+      std::cout << "                                      Z of calc = " << zcurrent << std::endl;
+      std::cout << "RecFP420Test:X of SimHit = " << hitPoint.x() << std::endl;
+      std::cout << "RecFP420Test:Y of SimHit = " << hitPoint.y() << std::endl;
+      std::cout << "RecFP420Test:X,Y of mid = " << mid.x() << mid.y() << std::endl;
+#endif
 //=======================================
+//=======================================!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//=======================================
+//=======================================
+//=======================================
+
+
+
+
+
 
       themapxystrip[unitID] = -1.;// charge in strip coord 
 
@@ -1535,21 +2403,209 @@ void RecFP420Test::update(const EndOfEvent * evt) {
 	     numStrips = numStripsY;
 	     pitch=pitchY;
 	     
+//  InduceChargeFP420:    chargePosition  =     fabs(int(Position3D.y()/localPitch+0.5*(numStrips+1)) + 1.)
+//	     themapxystrip[unitID]  = fabs(int(middle.y()/pitch+0.5*(numStrips+1)) + 1.);
+//  InduceChargeFP420:    chargePosition  =     int(fabs((Position3D.y()/localPitch+0.5*numStrips + 1.))
+//
+// local and global is rotated in 90 degree, for this reason:middle.x() , not middle.y()
+
+//	     themapxystrip[unitID]  = int(fabs(middle.x()/pitch + 0.5*numStrips + 1.));// nearest strip number
              themapxystrip[unitID] = 0.5*(numStrips-1) + middle.x()/pitch ;// charge in strip coord 
+
+//	     themapxystrip[unitID]  = fabs(-numStrips/2. - ( int(middle.y()/pitch) +1.) );
+//	     themapxy[unitID]  = middle.y();
+//	     themapxy[unitID]  = hitPoint.y()-hitEntryLocalPoint.y()+middle.y();
+//themapxy[unitID]  = hitPoint.y()-hitEntryLocalPoint.y()+(hitExitLocalPoint.y()-hitEntryLocalPoint.y())/2.;
+//	     themapxy[unitID]  = numStrips*pitch/2. + middle.y();  
+//
+// local and global is rotated in 90 degree, for this reason:middle.x() , not middle.y()
+//	     themapxy[unitID]  = (numStrips-1)*pitch/2. + middle.x();// hit coordinate in l.r.f starting at bot edge of plate
 	     themapxy[unitID]  = (numStrips-1)*pitch/2. + middle.x();// hit coordinate in l.r.f starting at bot edge of plate
+//    std::cout << "hitPoint.y() = " << hitPoint.y() << std::endl;
+//    std::cout << "hitEntryLocalPoint.y() = " << hitEntryLocalPoint.y() << std::endl;
+//    std::cout << "hitExitLocalPoint.y() = " << hitExitLocalPoint.y() << std::endl;
 	   }
-	   //X
+//X
+    if (verbosity > 2) {
+      std::cout << "RecFP420Test:check1111 " << std::endl;
+    }
 	   if(zside==2){
+	     //UserNtuples->fillg25(losenergy,1.);
 	     if(losenergy > 0.00003) {
 	       themap1[unitID] += 1.;
 	     }
+// E field (and p+,n+sides) along Y,  but define X coordinate -->  number of strips of the same side(say p+):100*pitchY=10mm
 	     numStrips = numStripsX;
 	     pitch=pitchX;
+	     //	     themapxystrip[unitID]  = fabs(int(middle.x()/pitch+0.5*(numStrips+1)) + 1.);
+//
+// local and global is rotated in 90 degree, for this reason:middle.y() , not middle.x()
+
+	     //themapxystrip[unitID]  = int(fabs(middle.y()/pitch + 0.5*numStrips + 1.));// nearest strip number
              themapxystrip[unitID] = 0.5*(numStrips-1) + middle.y()/pitch ;// charge in strip coord 
+    if (verbosity > 2) {
+      std::cout << "RecFP420Test:check2222 " << std::endl;
+    }
 
+//	     themapxystrip[unitID]  = fabs(-numStrips/2. - ( int(middle.x()/pitch) +1.) );
+//	     themapxy[unitID]  = middle.x();
+//	     themapxy[unitID]  = hitPoint.x()-hitEntryLocalPoint.x()+middle.x();
+//themapxy[unitID]  = hitPoint.x()-hitEntryLocalPoint.x()+(hitExitLocalPoint.x()-hitEntryLocalPoint.x())/2.;
+//
+// local and global is rotated in 90 degree, for this reason:middle.y() , not middle.x()
+//	     themapxy[unitID]  = (numStrips-1)*pitch/2. + middle.y(); // hit coordinate in l.r.f starting at left edge of plate 
 	     themapxy[unitID]  = (numStrips-1)*pitch/2. + middle.y(); // hit coordinate in l.r.f starting at left edge of plate 
+//    std::cout << "hitPoint.x() = " << hitPoint.x() << std::endl;
+//    std::cout << "hitEntryLocalPoint.x() = " << hitEntryLocalPoint.x() << std::endl;
+//    std::cout << "hitExitLocalPoint.x() = " << hitExitLocalPoint.x() << std::endl;
+	   }
+#ifdef ddebug
+    std::cout << " RecFP420Test:: ******************************************************************* " << std::endl;
+    std::cout << " RecFP420Test::   unitID  = " << unitID  << std::endl;
+    std::cout << " RecFP420Test::  hitExitLocalPoint   = " << hitExitLocalPoint  << std::endl;
+    std::cout << " RecFP420Test::  hitEntryLocalPoint   = " << hitEntryLocalPoint  << std::endl;
+    std::cout << " RecFP420Test::   middle  = " << middle  << std::endl;
+    std::cout << " RecFP420Test::   themapxystrip  = " << themapxystrip[unitID]  << std::endl;
+
+#endif
+//	   }
+//
+	   if(sector==1) {
+	     nhit11 += 1;
+	     //UserNtuples->fillg33(rr,1.);
+	     //UserNtuples->fillg11(yy,1.);
+	   }
+	   if(sector==2) {
+	     nhit12 += 1;
+	     //UserNtuples->fillg34(rr,1.);
+	     //UserNtuples->fillg86(yy,1.);
+	   }
+ 	   if(sector==3) {
+	     nhit13 += 1;
+	     //UserNtuples->fillg35(rr,1.);
+	     //UserNtuples->fillg87(yy,1.);
+	   }
+    //UserNtuples->fillg10(xx,1.);
+    //UserNtuples->fillg12(zz,1.);
+    //UserNtuples->fillg32(rr,1.);
 
 
+    // =========
+
+#ifdef ddebug0
+    double xPrimAtZhit = vx + (zz-vz)*tan(th)*cos(phi);
+    double yPrimAtZhit = vy + (zz-vz)*tan(th)*sin(phi);
+       double  dx = xPrimAtZhit - xx;
+       double  dy = yPrimAtZhit - yy;
+    std::cout << "xPrimAtZhit  = " <<xPrimAtZhit  << "yPrimAtZhit  = " << yPrimAtZhit << std::endl;
+    std::cout << "dx  = " <<dx  << "dy  = " <<dy  << std::endl;
+#endif
+
+    //                      Select SD hits
+//    if(rr<120.) {
+    //                      Select MI or noMI over all 3 stations
+    if(lastpo.z()<z4  && lastpo.perp()< 120.) {
+    // MIonly:
+      //UserNtuples->fillg16(lastpo.z(),1.);
+      //UserNtuples->fillg18(zz,1.);
+    //                                                                     Station I
+      if( zz < z2){
+	//UserNtuples->fillg54(dx,1.);
+	//UserNtuples->fillg55(dy,1.);
+      }
+    //                                                                     Station II
+      if( zz < z3 && zz > z2){
+	//UserNtuples->fillg50(dx,1.);
+	//UserNtuples->fillg51(dy,1.);
+      }
+    //                                                                     Station III
+      if( zz < z4 && zz > z3){
+	//UserNtuples->fillg64(dx,1.);
+	//UserNtuples->fillg65(dy,1.);
+	//UserNtuples->filld209(xx,yy,1.);
+      }
+    }
+    else{
+      // no MIonly:
+      //UserNtuples->fillg17(lastpo.z(),1.);
+      //UserNtuples->fillg19(zz,1.);
+      //UserNtuples->fillg74(incidentEnergyHit,1.);
+      //UserNtuples->fillg75(float(trackIDhit),1.);
+    //                                                                     Station I
+      if( zz < z2){
+	//UserNtuples->fillg56(dx,1.);
+	//UserNtuples->fillg57(dy,1.);
+	//UserNtuples->fillg20(numofpart,1.);
+	//UserNtuples->fillg21(SumEnerDeposit,1.);
+	if(zside==1) {
+	  //UserNtuples->fillg26(losenergy,1.);
+	}
+	if(zside==2){
+	  //UserNtuples->fillg76(losenergy,1.);
+	}
+	if(trackIDhit == 1){
+	  //UserNtuples->fillg70(dx,1.);
+	  //UserNtuples->fillg71(incidentEnergyHit,1.);
+	  //UserNtuples->fillg79(losenergy,1.);
+	}
+	else{
+	  //UserNtuples->fillg82(dx,1.);
+	}
+#ifdef ddebug
+    std::cout << "======================next hit" << std::endl;
+ //   std::cout << "dx = " << dx << "dy = " << dy << std::endl;
+    std::cout << "lastpo.z() = " << lastpo.z() << "zz = " << zz << std::endl;
+    std::cout << "sector = " << sector << "zmodule = " <<zmodule  << std::endl;
+    std::cout << "unitID = " << unitID << "losenergy = " << losenergy << std::endl;
+    //   std::cout << "trackIDhit = " << trackIDhit << "incidentEnergyHit = " <<incidentEnergyHit  << std::endl;
+//    std::cout << " = " <<  << " = " <<  << std::endl;
+//    std::cout << " = " <<  << " = " <<  << std::endl;
+#endif
+      }
+    //                                                                     Station II
+      if( zz < z3 && zz > z2){
+	//UserNtuples->fillg52(dx,1.);
+	//UserNtuples->fillg53(dy,1.);
+	//UserNtuples->fillg22(numofpart,1.);
+	//UserNtuples->fillg23(SumEnerDeposit,1.);
+	//UserNtuples->fillg80(incidentEnergyHit,1.);
+	//UserNtuples->fillg81(float(trackIDhit),1.);
+	if(zside==1) {
+	  //UserNtuples->fillg27(losenergy,1.);
+	}
+	if(zside==2){
+	  //UserNtuples->fillg77(losenergy,1.);
+	}
+	if(trackIDhit == 1){
+	  //UserNtuples->fillg72(dx,1.);
+	  //UserNtuples->fillg73(incidentEnergyHit,1.);
+	}
+	else{
+	  //UserNtuples->fillg83(dx,1.);
+	}
+#ifdef ddebug
+    std::cout << "======================next hit again" << std::endl;
+    //std::cout << "dx = " << dx << "dy = " << dy << std::endl;
+    std::cout << "lastpo.z() = " << lastpo.z() << "zz = " << zz << std::endl;
+    std::cout << "sector = " << sector << "zmodule = " <<zmodule  << std::endl;
+    std::cout << "unitID = " << unitID << "losenergy = " << losenergy << std::endl;
+    //   std::cout << "trackIDhit = " << trackIDhit << "incidentEnergyHit = " <<incidentEnergyHit  << std::endl;
+#endif
+      }
+    //                                                                     Station III
+      if( zz < z4 && zz > z3){
+	//UserNtuples->fillg68(dx,1.);
+	//UserNtuples->fillg69(dy,1.);
+	//UserNtuples->filld210(xx,yy,1.);
+	//UserNtuples->fillg22(numofpart,1.);
+	//UserNtuples->fillg23(SumEnerDeposit,1.);
+	if(zside==1) {
+	  //UserNtuples->fillg28(losenergy,1.);
+	}
+	if(zside==2){
+	  //UserNtuples->fillg78(losenergy,1.);
+	}
+      }
     } // MIonly or noMIonly ENDED
 //    }
 
@@ -1566,6 +2622,101 @@ void RecFP420Test::update(const EndOfEvent * evt) {
    for (int j=0; j<80 && AATest[j]!=0. ; j++) {
      TheHistManager->GetHisto("ATest")->Fill(AATest[j]);
    }
+
+//======================================================================================================SUMHIT
+  //UserNtuples->fillg29(totallosenergy,1.);
+  //UserNtuples->fillg36(nhit11,1.);
+  //UserNtuples->fillg37(nhit12,1.);
+  //UserNtuples->fillg38(nhit13,1.);
+//======================================================================================================SUMHIT
+
+
+
+
+/*
+//======================================================================================================CHECK
+  if(totallosenergy == 0.0) {
+    std::cout << "RecFP420Test::     number of hits = " << theCAFI->entries()   << std::endl;
+    for (int j=0; j<theCAFI->entries(); j++) {
+      FP420G4Hit* aHit = (*theCAFI)[j];
+      double  losenergy = aHit->getEnergyLoss();
+      std::cout << " j hits = " << j   << "losenergy = " << losenergy << std::endl;
+    }
+  }
+//======================================================================================================CHECK
+  
+
+
+//====================================================================================================== HIT  START
+
+  //   FIBRE Hit collected analysis
+  double totalEnergy = 0.;
+  int nhitsX = 0, nhitsY = 0, nsumhit = 0 ;
+  for (int sector=1; sector<sn0; sector++) {
+    int nhitsecX = 0, nhitsecY = 0;
+    for (int zmodule=1; zmodule<11; zmodule++) {
+      for (int zside=1; zside<3; zside++) {
+	int sScale = 20, det= 1, nhit = 0;
+	int index = FP420NumberingScheme::packFP420Index(det, zside, sector, zmodule);
+	double   theTotalEnergy = themap[index];
+	//   X planes
+	if(zside<2){ 
+	  //UserNtuples->fillg47(theTotalEnergy,1.); 
+	  if(theTotalEnergy > 0.00003) {
+	    nhitsX += 1;
+	    nhitsecX += themap1[index];
+	    nhit=1;
+	  }
+	}
+	//   Y planes
+	else {
+	  //UserNtuples->fillg49(theTotalEnergy,1.);
+	  if(theTotalEnergy > 0.00005) {
+	    nhitsY += 1;
+	    nhitsecY += themap1[index];
+	    nhit=1;
+	  }
+	}
+        // intindex is a continues numbering of FP420
+        int zScale=2;  unsigned int intindex = sScale*(sector - 1)+zScale*(zmodule - 1)+zside;
+        // int zScale=10;       unsigned int intindex = sScale*(sector - 1)+zScale*(zside - 1)+zmodule;
+	//UserNtuples->fillg41(float(intindex),theTotalEnergy);
+	//UserNtuples->fillg42(float(intindex),1.);
+	//UserNtuples->fillp208(float(intindex),float(nhit),1.);
+	//UserNtuples->fillp211(float(intindex),float(themap1[index]),1.);
+	totalEnergy += themap[index];
+      } // for
+    } // for
+          //UserNtuples->fillg39(nhitsecY,1.); 
+          if(nhitsecX > 10 || nhitsecY > 10) {
+	    nsumhit +=1;
+	    //UserNtuples->fillp213(float(sector),float(1.),1.);
+	  }
+	  else{ //UserNtuples->fillp213(float(sector),float(0.),1.);
+	  }
+  } // for
+
+
+
+
+//====================================================================================================== HIT  END
+
+//====================================================================================================== HIT  ALL
+  //UserNtuples->fillg43(totalEnergy,1.);
+  //UserNtuples->fillg58(nhitsX,1.); 
+  //UserNtuples->fillg59(nhitsY,1.); 
+  //  if( nsumhit !=0 ) { //UserNtuples->fillp212(vy,float(1.),1.);
+  if( nsumhit >=2 ) { //UserNtuples->fillp212(vy,float(1.),1.);
+  }
+  else{   //UserNtuples->fillp212(vy,float(0.),1.);
+  }
+
+//====================================================================================================== HIT  ALL
+*/
+
+
+
+
 
 
 
@@ -1588,16 +2739,75 @@ void RecFP420Test::update(const EndOfEvent * evt) {
 
 // Digi validation:
   if(totallosenergy == 0.0) {
+//#ifdef mydigidebug10
+    std::cout << "RecFP420Test:: DO NOT GO TO DIGI -> number of hits = " << theCAFI->entries()   << std::endl;
+//#endif
   } else{
+#ifdef ddebugprim
+    std::cout << "RecFP420Test:: start DIGI -> number of hits = " << theCAFI->entries()   << std::endl;
+#endif
+#ifdef mydigidebug10
+    std::cout << "RecFP420Test:: start DIGI -> number of hits = " << theCAFI->entries()   << std::endl;
+
+
+////  for(unsigned int i = 0; i < theStripHits.size(); i++ ) {
+////    std::cout <<  "RecFP420Test: i = " << i << theStripHits[i] << std::endl;
+////  }
+
+
+#endif
                                                                                                  
           
 // ==============================================================================================   produce Digi start
 //    produce();
+#ifdef mydigidebug10
+   std::cout <<" ===== RecFP420Test:: call produce of DigitizerFP420" << std::endl;
+#endif
+
+//  DigiCollectionFP420 *   output;
+//  output = new DigiCollectionFP420();
+//    std::auto_ptr<DigiCollectionFP420> output(new DigiCollectionFP420);
 
    theDigitizerFP420->produce(theCAFI,output);
+//   theDigitizerFP420->produce(theCAFI, output & );
+//  theDigitizerFP420->produce(theCAFI, std::vector<HDigiFP420>& digis);
+// ==============================================================================================
+/*
+  // access to the DigiCollectionFP420:
+#ifdef mydigidebug10
+   std::cout <<" ===== RecFP420Test:: access to DigiCollectionFP420 " << std::endl;
+#endif
+typedef G4THitsCollection<FP420G4Hit> FP420G4HitCollection;
+  G4HCofThisEvent* allHC = (*evt)()->GetHCofThisEvent();
+
+  int DIGIid = G4SDManager::GetSDMpointer()->GetCollectionID("FP420SI");
+
+  typedef std::map< unsigned int, std::vector<HDigiFP420> > HDigiFP420Container; 
+  DigiCollectionFP420* theDIGI = (DigiCollectionFP420*) allHC->GetHC(DIGIid);
+
+  const Range get(unsigned int detID) const;
+const DigiCollectionFP420::Range DigiCollectionFP420::get(unsigned int detID) const {
+
+
+    std::cout << "number of hits = " << theDIGI->entries()   << std::endl;
+    for (int j=0; j<theDIGI->entries(); j++) {
+      HDigiFP420* dHit = (*theDIGI)[j];
+      double  losenergy = dHit->getEnergyLoss();
+      std::cout << " j hits = " << j   << "losenergy = " << losenergy << std::endl;
+    }
+*/
+// ==============================================================================================
+// ==============================================================================================
 
   //    check of access to the strip collection
 // =======================================================================================check of access to strip collection
+
+  //     check of access to the collector:
+//  DigiCollectionFP420 *   output;
+//  output = new DigiCollectionFP420();
+#ifdef mydigidebug10
+   std::cout <<" ===== RecFP420Test:: start of access to the collector" << std::endl;
+#endif
     if (verbosity > 2) {
       std::cout << "RecFP420Test:  start of access to the collector" << std::endl;
     }
@@ -1611,6 +2821,9 @@ void RecFP420Test::update(const EndOfEvent * evt) {
 	int sScale = 2*(pn0-1);
 	int zScale=2;  unsigned int iu = sScale*(sector - 1)+zScale*(zmodule - 1)+zside;
 	// int zScale=10;	unsigned int intindex = sScale*(sector - 1)+zScale*(zside - 1)+zmodule;
+#ifdef mydigidebug10
+    std::cout << " RecFP420Test::2 digicoll " << " iu = " << iu  << std::endl;
+#endif
 
     if (verbosity > 2) {
       std::cout <<" ===== RecFP420Test:: sector= " << sector  
@@ -1619,21 +2832,107 @@ void RecFP420Test::update(const EndOfEvent * evt) {
 		<< "iu= "  << iu  
 		<< std::endl;
     }
+#ifdef mydigidebug10
+	if(zside == 2){
+   std::cout <<" ===== RecFP420Test::3 sector= " << sector  << "zmodule= "  << zmodule  << "zside= "  << zside  << "iu= "  << iu  << std::endl;
+	}
+#endif
+   //==================================
+	/*
+// Returns (by reference) all Digis for a given DetId.
+void DigiCollectionFP420::digis( unsigned int& det_id,
+				 std::vector<HDigiFP420>& digis ) const {
+   vector<HDigiFP420>::const_iterator simHitIter = input.begin();
+   vector<HDigiFP420>::const_iterator simHitIterEnd = input.end();
+   for (;simHitIter != simHitIterEnd; ++simHitIter) {
+ 
+     const HDigiFP420 ihit = *simHitIter;
+*/
+	/*
+const std::vector<FP420G4Hit> &input
+   vector<FP420G4Hit>::const_iterator simHitIter = input.begin();
+   vector<FP420G4Hit>::const_iterator simHitIterEnd = input.end();
+   for (;simHitIter != simHitIterEnd; ++simHitIter) {
+ 
+     const FP420G4Hit ihit = *simHitIter;
+
+  std::vector<const FP420G4Hit*> ss;
+  std::vector<HDigiFP420> digis;
+*/
   std::vector<HDigiFP420> collector;
 	collector.clear();
 	DigiCollectionFP420::Range outputRange;
+//	outputRange = output->get(iu);
 	outputRange = output.get(iu);
+
+
+
+	/*
+     // temporary check start !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	float cog=0.;
+	float err=0.;
+	ClusterFP420( iu, outputRange, cog, err );
+#ifdef mydigidebug10
+	std::cout <<" cog=  " <<  cog  <<" err=  " <<  err  << std::endl;
+#endif
+	 float deltastrip =     themapxystrip[index] - cog;
+	 // Y:
+     if(zside==1){
+       float pitch=pitchY;
+       float deltayy =     themapxy[index] - (cog-1)*pitch;
+     }
+     // X:
+     else if(zside==2){
+       float pitch=pitchX;
+       float deltaxx =     themapxy[index] - (cog-1)*pitch;
+     }
+     // temporary check end !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+*/
+
+
+
+
   // fill output in collector vector (for may be sorting? or other checks)
   DigiCollectionFP420::ContainerIterator sort_begin = outputRange.first;
   DigiCollectionFP420::ContainerIterator sort_end = outputRange.second;
+#ifdef mydigidebug100
+    std::cout << " 1strip number = " << (*sort_begin).strip() << "  adc = " << (*sort_begin).adc() << std::endl;
+    std::cout << " 2strip number = " << (*sort_end).strip() << "  adc = " << (*sort_end).adc() << std::endl;
+#endif
+
 
   for ( ;sort_begin != sort_end; ++sort_begin ) {
+#ifdef mydigidebug10
+    std::cout << " 0strip number = " << (*sort_begin).strip() << "  adc = " << (*sort_begin).adc() << std::endl;
+#endif
     collector.push_back(*sort_begin);
   } // for
+
+#ifdef mydigidebug10
+std::cout << "DigiCollectionFP420:: collector.size() = " << collector.size() << std::endl;
+#endif
+
+
+  //  std::sort(collector.begin(),collector.end());
+#ifdef mydigidebug10
+ std::cout <<" ===" << std::endl;
+ std::cout <<" ===" << std::endl;
+ std::cout <<"=======RecFP420Test::check of re-new collector size = " << collector.size() << std::endl;
+ std::cout <<" ===" << std::endl;
+ std::cout <<" ===" << std::endl;
+#endif
    vector<HDigiFP420>::const_iterator simHitIter = collector.begin();
    vector<HDigiFP420>::const_iterator simHitIterEnd = collector.end();
    for (;simHitIter != simHitIterEnd; ++simHitIter) {
      const HDigiFP420 istrip = *simHitIter;
+     /*
+     const HDigiFP420* astrip =(*)[simHitIter];
+  FP420G4HitCollection* theCAFI = (FP420G4HitCollection*) allHC->GetHC(CAFIid);
+   for (int j=0; j<theCAFI->entries(); j++) {
+    FP420G4Hit* isim = (*theCAFI)[j];
+    unsigned int unitID = (*isim).getUnitID();
+      double  losenergy = isim->getEnergyLoss();
+*/
      // Y:
      if(zside==1){
        //    float pitch=pitchY;
@@ -1678,11 +2977,31 @@ void RecFP420Test::update(const EndOfEvent * evt) {
 	   TheHistManager->GetHisto("DigiXstripAdcSigma4")->Fill(istrip.adc()/sigmanoise);
 	 }
      }
+#ifdef mydigidebug10
+//     if(zside == 1) {
+ std::cout << " RecFP420Test::check: HDigiFP420::  " << std::endl;
+ // std::cout << " strip number = " << (*simHitIter).strip() << "  adc = " << (*simHitIter).adc() << std::endl;
+ // std::cout << " strip number = " << simHitIter->strip() << "  adc = " << simHitIter->adc() << std::endl;
+ std::cout << " strip number = " << istrip.strip() << "  adc = " << istrip.adc() << std::endl;
+ std::cout << " channel = " << istrip.channel() << std::endl;
+ // std::cout << " strip number = " << astrip->strip() << "  adc = " << astrip->adc() << std::endl;
+ //    }
+#endif
    }
+   /* 
+   for (DigitalMapType::const_iterator i=collector.begin(); i!=collector.end(); i++) {
+   std::cout << "DigitizerFP420:check: HDigiFP420::  " << std::endl;
+   std::cout << " strip number is as (*i).first  = " << (*i).first << "  adc is in (*i).second  = " << (*i).second << std::endl;
+   }
+*/
    //==================================
       }   // for
     }   // for
   }   // for
+#ifdef mydigidebug10
+  std::cout << " RecFP420Test::end of access to the strip collection " << std::endl;
+  std::cout << " RecFP420Test:: end DIGI " << std::endl;
+#endif
 
   //     end of check of access to the strip collection
 // =======================================================================================check of access to strip collection
@@ -1690,6 +3009,93 @@ void RecFP420Test::update(const EndOfEvent * evt) {
 
 // ==============================================================================================
 // ==============================================================================================
+// ==============================================================================================
+// ==============================================================================================
+// ==============================================================================================
+// ==============================================================================================
+// ==============================================================================================
+
+
+/*
+// ==============================================================================================strip garbage
+  //     check of access to the strip collection:
+//  DigiCollectionFP420 *   output;
+//  output = new DigiCollectionFP420();
+#ifdef mydigidebug10
+   std::cout <<" ===== RecFP420Test:: start of access to strip collection" << std::endl;
+#endif
+  for (int sector=1; sector<sn0; sector++) {
+    for (int zmodule=1; zmodule<pn0; zmodule++) {
+      for (int zside=1; zside<3; zside++) {
+	int sScale = 2*(pn0-1);
+	//	int det= 1;
+	//      int index = CaloNumberingPacker::packCastorIndex(det,zside, sector, zmodule);
+	//      int index = FP420NumberingScheme::packFP420Index(det, zside, sector, zmodule);
+	// intindex is a continues numbering of FP420
+	int zScale=2;  unsigned int iu = sScale*(sector - 1)+zScale*(zmodule - 1)+zside;
+	// int zScale=10;	unsigned int intindex = sScale*(sector - 1)+zScale*(zside - 1)+zmodule;
+std::cout <<" ===== RecFP420Test:: sector= " << sector  << "zmodule= "  << zmodule  << "zside= "  << zside  << "iu= "  << iu  << std::endl;
+#ifdef mydigidebug10
+   std::cout <<" ===== RecFP420Test:: sector= " << sector  << "zmodule= "  << zmodule  << "zside= "  << zside  << "iu= "  << iu  << std::endl;
+#endif
+   //==================================
+ std::cout << " check=1 " << std::endl;
+	scollector.clear();
+	ClusterCollectionFP420::Range soutputRange;
+	soutputRange = soutput->get(iu);
+ std::cout << " check=2 " << std::endl;
+
+	//	  	scollector.clear();
+	//	  HDigiFP420Range::Range soutputRange;
+	//	  soutputRange.first = scollector.begin();
+	//	  soutputRange.second = scollector.end();
+		//	  	scollector= ClusterFP420( iu, outputRange);
+  // fill output in collector vector (for may be sorting? or other checks)
+  std::vector<ClusterFP420> scollector;
+  ClusterCollectionFP420::ContainerIterator sort_begin = soutputRange.first;
+  ClusterCollectionFP420::ContainerIterator sort_end = soutputRange.second;
+ std::cout << " check=3 " << std::endl;
+  for ( ;sort_begin != sort_end; ++sort_begin ) {
+
+ std::cout << " check=4 " << std::endl;
+    scollector.push_back(*sort_begin);
+  } // for
+
+   vector<ClusterFP420>::const_iterator simHitIter = scollector.begin();
+   vector<ClusterFP420>::const_iterator simHitIterEnd = scollector.end();
+ std::cout << " check=5 " << std::endl;
+   for (;simHitIter != simHitIterEnd; ++simHitIter) {
+ std::cout << " check=6 " << std::endl;
+     const ClusterFP420 istrip = *simHitIter;
+     
+ std::cout << " check=7 " << std::endl;
+ std::cout << " strip  barycenter= " << istrip.barycenter() << std::endl;
+
+   }
+
+   //==================================
+
+      }   // for
+    }   // for
+  }   // for
+  //     end of check of access to the strip collection
+// ==============================================================================================
+*/
+
+// ==============================================================================================
+// ==============================================================================================
+// ==============================================================================================
+// ==============================================================================================
+// ==============================================================================================
+// ==============================================================================================
+
+
+
+
+
+
+
+
 // ==============================================================================================
 //                                       CLUSTERS:                                                               =START
 //                                       CLUSTERS:                                                               =START
@@ -1801,6 +3207,41 @@ void RecFP420Test::update(const EndOfEvent * evt) {
    std::cout <<"CLUSTERS: RecFP420Test:: sector= " << sector  << "  zmodule= "  << zmodule  << "  zside= "  << zside  << "  iu= "  << iu  << "  index= "  << index  << "  themapxystrip= "  << themapxystrip[index] << std::endl;
     }
 
+   /*
+	const ClusterCollectionFP420::Range clusterRange = theClusterCollectionFP420->get(iu);
+	ClusterCollectionFP420::ContainerIterator clusterRangeIteratorBegin = clusterRange.first;
+	ClusterCollectionFP420::ContainerIterator clusterRangeIteratorEnd   = clusterRange.second;
+	ClusterCollectionFP420::ContainerIterator iter;
+	  for(iter=clusterRangeIteratorBegin;iter!=clusterRangeIteratorEnd;++iter){//loop on the cluster
+#ifdef myClusterdebug10
+	    //     std::cout << "**ContainerIterator***  firstStrip = " << iter->firstStrip() << "geographicalId = " << iter->geographicalId() << "barycenter = " << iter->barycenter() << std::endl;
+  for(unsigned int i = 0; i < iter->amplitudes().size(); i++ ) {
+    std::cout <<  "DigitizerFP420 i = " << i << "amplitudes = "  << iter->amplitudes()[i] << std::endl;
+  }
+#endif
+	  }
+*/
+
+	  /*
+	  for(iter=clusterRangeIteratorBegin;iter!=clusterRangeIteratorEnd;++iter){//loop on the cluster
+	    //SiStripCluster cluster=*iter;
+	    LocalPoint position=Rtopol.localPosition(iter->barycenter());
+	    //	    std::std::cout<<"cluster position:"<<position.x()<<" "<<position.y()<<std::std::endl;
+	    position+=drift;
+	    //std::std::cout<<"corrected cluster position:"<<position.x()<<" "<<position.y()<<std::std::endl;
+	    const  LocalError error=Rtopol.localError(iter->barycenter(),12.);
+	    std::vector<const SiStripCluster*> clusters;
+	    clusters.push_back(&(*iter));
+	    if(!specDetId.stereo()){
+	      collectorrphi.push_back(new SiStripRecHit2DLocalPos(position, error,detId,clusters));
+	      nmono++;
+	    }
+	    if(specDetId.stereo()){
+	      collectorstereo.push_back(new SiStripRecHit2DLocalPos(position, error,detId,clusters));
+	      nstereo++;
+	    }
+	  }
+*/
 
 //============================================================================================================
   std::vector<ClusterFP420> collector;
@@ -1829,6 +3270,8 @@ void RecFP420Test::update(const EndOfEvent * evt) {
        if( varia == 1) TheHistManager->GetHisto("NumOfClusMI")->Fill(collector.size());
        if( varia == 2) TheHistManager->GetHisto("NumOfClusNoMI")->Fill(collector.size());
 
+//       if( varia == 2 ) break;   //     mean: take  MI only
+//       if( varia == 1 ) break;    //   mean: take  noMI
 //
 // #cl vs Z:
 	 TheHistManager->GetHisto2("2DZSimHitNumbCl")->Fill(themapz[index],collector.size());
@@ -1845,8 +3288,14 @@ void RecFP420Test::update(const EndOfEvent * evt) {
 
 	 }//
 
+	 // to stuck the algorithm just comment 2 next lines
+	 //	 if( collector.size() > 1 ) metMI=1;
+	 //	 if( collector.size() > 1 ) break;
 
        float pitch=0;
+       //       if(collector.size()>0){
+       // temporary for 2tracks study:
+       //if(collector.size()>1){
        if(collector.size()>clnumcut){
 //
 //
@@ -1870,7 +3319,8 @@ void RecFP420Test::update(const EndOfEvent * evt) {
        }
 
 //============================================================================================================
-
+//	 TheHistManager->GetHisto2("")->Fill(themapz[index],themapxy[index]);
+//============================================================================================================
        if(themapxystrip[index] > 0){
 
 	 TheHistManager->GetHisto("iu0")->Fill(float(iu),1.);
@@ -1879,7 +3329,27 @@ void RecFP420Test::update(const EndOfEvent * evt) {
 	 }
        }
        else{
+#ifdef myClusterdebug10
+ std::cout <<" =====================      themapxystrip[index] < = 0         =" << themapxystrip[index] << std::endl;
+ std::cout <<" ==      iu = " << iu <<" ==   zmodule   = " << zmodule << std::endl;
+ std::cout <<" ==      sector = " << sector <<" ==     zside = " << zside << std::endl;
+ std::cout <<" ===      lastpo.x() = " << lastpo.x() << std::endl;
+ std::cout <<" ===      lastpo.y() = " << lastpo.y() << std::endl;
+ std::cout <<" ===      lastpo.z() = " << lastpo.z() << std::endl;
+
+#endif
+ //	   TheHistManager->GetHisto("PrimaryLastpoX")->Fill(lastpo.x());
        }
+//============================================================================================================
+#ifdef myClusterdebug10
+ std::cout <<" ===" << std::endl;
+ std::cout <<"=======RecFP420Test::check of re-new Cluster collector size = " << collector.size() << std::endl;
+ std::cout <<" ===" << std::endl;
+ std::cout <<" ===" << std::endl;
+ std::cout <<"=======      Number of clusters found is equal to   " << collector.size() << std::endl;
+ std::cout <<" ===" << std::endl;
+#endif
+//============================================================================================================
 
    vector<ClusterFP420>::const_iterator simHitIter = collector.begin();
    vector<ClusterFP420>::const_iterator simHitIterEnd = collector.end();
@@ -1897,14 +3367,18 @@ void RecFP420Test::update(const EndOfEvent * evt) {
      const ClusterFP420 icluster = *simHitIter;
      icl++;
      //                          1 - numStripsX or 1 - numStripsY         0-400 or 0-250,   so add +1 here     
+     //   float deltastrip =     themapxystrip[index] - (icluster.barycenter()+1);
      float deltastrip =     themapxystrip[index] - (icluster.barycenter()  );
      float deltaxy;
      float clsize =   icluster.amplitudes().size();
      
 // Z:
+//	 TheHistManager->GetHisto2("2DZSimHitNumbCl")->Fill(themapz[index],collector.size());
 // Y:
      if(zside==1){
 	 //       numStrips = numStripsY;
+	 //	 deltaxy =     themapxy[index] - (icluster.barycenter()-1)*pitch;// if it changing:1-numStripsX or 1-numStripsY
+	 //       deltaxy =     themapxy[index] - (icluster.barycenter()-0)*pitch;// if it changing:0-200 or 0-100
 	 deltaxy =     themapxy[index] - (icluster.barycenter()-0)*pitch;// if it changing:0-200 or 0-100
 	 TheHistManager->GetHisto("Ystrip_deltayy")->Fill(deltaxy);
 	 if(clsize==1) TheHistManager->GetHisto("Ystrip_deltayy_clsize1")->Fill(deltaxy);
@@ -1929,6 +3403,8 @@ void RecFP420Test::update(const EndOfEvent * evt) {
 // X:
      else if(zside==2){
 	 //       numStrips = numStripsX;
+	 //	 deltaxy =     themapxy[index] - (icluster.barycenter()-1)*pitch;// if it changing:1-numStripsX or 1-numStripsY
+	 //    deltaxy =     themapxy[index] - (icluster.barycenter()-0)*pitch;// if it changing:0-200 or 0-100
 	 deltaxy =     themapxy[index] - (icluster.barycenter()-0)*pitch;// if it changing:0-200 or 0-100
 	 TheHistManager->GetHisto("Xstrip_deltaxx")->Fill(deltaxy);
 	 if(clsize==1) TheHistManager->GetHisto("Xstrip_deltaxx_clsize1")->Fill(deltaxy);
@@ -1991,20 +3467,55 @@ void RecFP420Test::update(const EndOfEvent * evt) {
        }   // for loop in strips for each cluster:
 
 
+
+
+
+
+
+	 /*
+                      TheHistManager->GetHisto("SP_H_Epz")->Fill(*H_Epz);
+                      TheHistManager->GetHisto("SP_H_Q2s")->Fill(TMath::Log10(*H_Q2s));
+                      TheHistManager->GetHisto("SP_H_Xs")->Fill(TMath::Log10(H_Xs));
+	 */
+#ifdef myClusterdebug10
+     //     if(zside == 1) {
+ std::cout << " RecFP420Test::check: ClusterCollectionFP420::  " << std::endl;
+ std::cout << " index = " << index << " themapxystrip[index]  = " << themapxystrip[index] << " themapxy[index]  = " << themapxy[index] << " deltastrip  = " << deltastrip << std::endl;
+ std::cout << " firstStrip = " << icluster.firstStrip() << "  barycenter = " << icluster.barycenter() << std::endl;
+ std::cout << " size of cluster= " << icluster.amplitudes().size() << std::endl;
+ // std::cout << " strip number = " << (*simHitIter).strip() << "  adc = " << (*simHitIter).adc() << std::endl;
+ // std::cout << " strip number = " << simHitIter->strip() << "  adc = " << simHitIter->adc() << std::endl;
+ for(unsigned int i = 0; i < icluster.amplitudes().size(); i++ ) {
+    std::cout <<  "i = " << i << "   amplitudes = "  << icluster.amplitudes()[i] << std::endl;
+ }
+
+ std::cout <<" ===" << std::endl;
+ std::cout <<" ===" << std::endl;
+ //     }
+#endif
+
 // find( and take info) cluster with max amplitude inside its width  (only one!)
                         if(ampmax>clampmax) {
 			  clampmax = ampmax;
 			  iclustermax = *simHitIter;
+
 			}
+
+
 //                                                                                                                               .
    } // for loop in #clusters
+
   TheHistManager->GetHisto("NclPerPlane")->Fill(icl);
+
+
    if(clampmax != 0){
      // fill vectors for track reconstruction
      
      // local - global systems with possible shift of every second plate:
      float dYY = dYYconst;// XSiDet/2.
      float dXX = dXXconst;//(BoxYshft+dYGap) + (YSi - YSiDet)/2. = 12.7
+     //
+
      //
      if (zside ==1 && UseHalfPitchShiftInY_== true){
        int iii = zmodule - 2*int(zmodule/2.);//   zmodule = 1,2,3,...10   -------   iii = 1,0,1,...0 
@@ -2015,6 +3526,8 @@ void RecFP420Test::update(const EndOfEvent * evt) {
        if( iii == 0)  dXX += pitch/2.;
      }
      //
+
+     //
      if (zside ==1 && UseThirdPitchShiftInY_== true){
        if( zmodule == 2 || zmodule == 5 )  dYY -= pitch/3.;//   zmodule = 1,2,3,...6 
        if( zmodule == 3 || zmodule == 6 )  dYY -= 2.*pitch/3.;
@@ -2023,6 +3536,8 @@ void RecFP420Test::update(const EndOfEvent * evt) {
        if( zmodule == 2 || zmodule == 5 )  dXX += pitch/3.;//   zmodule = 1,2,3,...6 
        if( zmodule == 3 || zmodule == 6 )  dXX += 2.*pitch/3.;
      }
+     //
+
      //
      if (zside ==1 && UseForthPitchShiftInY_== true){
        if( zmodule == 2 || zmodule == 6 )  dYY -= pitch/4.;//   zmodule = 1,2,3,...6 
@@ -2034,6 +3549,8 @@ void RecFP420Test::update(const EndOfEvent * evt) {
        if( zmodule == 3 || zmodule == 7 )  dXX += 2.*pitch/4.;
        if( zmodule == 4 || zmodule == 8 )  dXX += 3.*pitch/4.;
      }
+     //
+
      //
      //disentangle complicated pattern recognition of hits?
      // Y:
@@ -2113,10 +3630,18 @@ void RecFP420Test::update(const EndOfEvent * evt) {
 	 w3X[nhitplanes3X-1] = 1./(iclustermax.barycerror()*pitch);//reciprocal of the variance for each datapoint in y
 	 w3X[nhitplanes3X-1] *= w3X[nhitplanes3X-1];//reciprocal of the variance for each datapoint in y
        }
+       //std::cout << "**********************nhitplanesX=  " << nhitplanesX << " zX= " << zX[nhitplanesX-1] << std::endl;
+       //std::cout << "xX=  " << xX[nhitplanesX-1] << " wX= " << wX[nhitplanesX-1] << std::endl;
      }
    }// if(clampmax
    
    // end of fill vectors for track reconstruction
+   /* 
+      for (DigitalMapType::const_iterator i=collector.begin(); i!=collector.end(); i++) {
+      std::cout << "DigitizerFP420:check: HDigiFP420::  " << std::endl;
+      std::cout << " strip number is as (*i).first  = " << (*i).first << "  adc is in (*i).second  = " << (*i).second << std::endl;
+      }
+   */
    //================================== end of for loops in continuius number iu:
       }   // for
     }   // for
@@ -2137,18 +3662,82 @@ void RecFP420Test::update(const EndOfEvent * evt) {
   TheHistManager->GetHisto("clnum4X")->Fill(clnum4X);
   TheHistManager->GetHisto("clnum0X")->Fill(clnum0X);
 
+#ifdef mydebug10
+  std::cout << " RecFP420Test::end of access to CLUSTERS collection " << std::endl;
+  std::cout << " RecFP420Test:: end CLUSTERS " << std::endl;
+#endif
+
+
    //==================================
 //                     CLUSTERS:                                                               =END
-   //==================================
+
+// ==============================================================================================
+// ==============================================================================================
+// ==============================================================================================
+// ==============================================================================================
+// ==============================================================================================
+// ==============================================================================================
+// ==============================================================================================
+// ==============================================================================================
 
 
 
-
-   //==================================
 //                                                                                                   TrackReconstruction:                                          .
 //                                                                               TrackReconstruction:                                                    .
 //                                                            TrackReconstruction:                                                    .
-   //==================================
+//                                         TrackReconstruction:                                                    .
+//                      TrackReconstruction:                                                    .
+//   TrackReconstruction:                                                    .
+//                                                .
+//                                                                                                        Start for tracks      .
+//                                                                                                                                  Start for tracks      .
+//                                                                                                                                  Start for tracks      .
+//                                                                                                                                  Start for tracks      .
+//                                                                                                                                  Start for tracks      .
+//                                                                                                                                  Start for tracks      .
+//                                                .
+//                                                                                                   TrackReconstruction:                                          .
+//                                                                               TrackReconstruction:                                                    .
+//                                                            TrackReconstruction:                                                    .
+//                                         TrackReconstruction:                                                    .
+//                      TrackReconstruction:                                                    .
+//   TrackReconstruction:                                                    .
+//                                                .
+//                                                .
+//
+//
+#ifdef myTrackdebug10
+  std::cout << ".                                              ." << std::endl;
+  std::cout << " RecFP420Test::   start track reconstruction      ." << std::endl;
+  std::cout << ".                                              ." << std::endl;
+#endif
+
+#ifdef myTrackdebug10
+ std::cout <<" ===" << std::endl;
+ std::cout <<" ===" << std::endl;
+   std::cout <<" ===== RecFP420Test:: start of access to Tracks" << std::endl;
+ std::cout <<" ===" << std::endl;
+ std::cout <<" ===" << std::endl;
+#endif
+//
+//
+//
+
+////                                                                                          access to Tracks
+//ntrackscoll
+//dphitrack dthtrack dthetax dthetay numberOfXandYtracks
+//nhitplanesX chisqX  nhitplanesY chisqY dXinVtxTrack dYinVtxTrack
+#ifdef ddebugprim
+//#ifdef myTrackdebug10
+ std::cout <<" =================================================" << std::endl;
+ std::cout <<" clnum1X= " << clnum1X <<" clnum2X= " << clnum2X <<" clnum3X= " << clnum3X << std::endl;
+ std::cout <<" =================================================" << std::endl;
+ std::cout <<" =================================================" << std::endl;
+ std::cout <<" =================================================" << std::endl;
+ std::cout <<" =================================================" << std::endl;
+ std::cout <<" =================================================" << std::endl;
+ std::cout <<" =================================================" << std::endl;
+#endif
  //
  if(clnum1X>2 && clnum2X>1&& clnum3X>1
     && clnum1Y>2 && clnum2Y>1&& clnum3Y>1) {
@@ -2173,6 +3762,18 @@ void RecFP420Test::update(const EndOfEvent * evt) {
  TheHistManager->GetHisto("ntrackscoll")->Fill(collector.size());
 
 
+
+#ifdef myTrackdebug10
+ std::cout <<" ===" << std::endl;
+ std::cout <<" ===" << std::endl;
+ std::cout <<"=======RecFP420Test::check of re-new collector size = " << collector.size() << std::endl;
+ std::cout <<" ===" << std::endl;
+ std::cout <<" ===" << std::endl;
+#endif
+ //
+ //                                                                          .
+   // TheHistManager->GetHisto("ntrackscoll22")->Fill(collector.size());
+
  TheHistManager->GetHisto("efftracktheta")->Fill(fabs(bxtrue*1000.));
  TheHistManager->GetHisto("effnhitplanesX")->Fill(nhitplanes2X);
  TheHistManager->GetHisto("efftrackdref12")->Fill(dref12);
@@ -2185,7 +3786,11 @@ void RecFP420Test::update(const EndOfEvent * evt) {
  vector<TrackFP420>::const_iterator simHitIter = collector.begin();
  vector<TrackFP420>::const_iterator simHitIterEnd = collector.end();
  //
+ //
+ //
  //           loop in #tracks            loop in #tracks          loop in #tracks
+ //
+ //
  //
  double Ay[10],Ax[10],By[10],Bx[10];
  //
@@ -2203,7 +3808,6 @@ void RecFP420Test::update(const EndOfEvent * evt) {
    Ay[ntracks-1]=itrack.ay();
    Bx[ntracks-1]=itrack.bx();
    By[ntracks-1]=itrack.by();
- //
    // tests: tocollection1 instead itrack.ay() temporary!
  //  if(collector.size() < 2){
      TheHistManager->GetHisto("tocollection")->Fill(itrack.ay());
@@ -2223,6 +3827,20 @@ void RecFP420Test::update(const EndOfEvent * evt) {
    // END of tests
    
    //
+#ifdef myTrackdebug10
+   std::cout << "RecFP420Test::check: nclusterx = " << itrack.nclusterx() << "  nclustery = " << itrack.nclustery() << std::endl;
+   std::cout << "  ax = " << itrack.ax() << "  bx = " << itrack.bx() << std::endl;
+   std::cout << "  ay = " << itrack.ay() << "  by = " << itrack.by() << std::endl;
+   std::cout << " chi2x= " << itrack.chi2x() << " chi2y= " << itrack.chi2y() << std::endl;
+   std::cout <<" ntracks=" << ntracks << std::endl;
+   std::cout <<" ===" << std::endl;
+   std::cout <<" =======================" << std::endl;
+#endif
+   //
+   //                                                                                            dX & dY
+   //
+   //chisq2X d2XinVtxTrack nhitplanes2X dphitrack2 dthtrack2 dthetax2 clnum2Xinside d3thetax2
+   //chisqX dXinVtxTrack nhitplanesX dphitrack dthtrack dthetax 
 //    X
        TheHistManager->GetHisto("nhitplanesX")->Fill(itrack.nclusterx());
        float chindfx;
@@ -2248,44 +3866,15 @@ void RecFP420Test::update(const EndOfEvent * evt) {
 	 //	 ntracks++;
 	 //  if(chindfx < 3. ) {
 	 //float dX = (itrack.ax()+ itrack.bx()*zref) - xref;// precision of ref point
-	   float dX = (bxtrue - itrack.bx())*zref;// precision of DeltaX points at 8m arm
-	   //float dX = bxtrue*zref - (itrack.bx()*zref + XXX420);// 
+	 float dX = (bxtrue - itrack.bx())*zref;// precision of DeltaX points at 8m arm
 	 TheHistManager->GetHisto("dXinVtxTrack")->Fill(dX);
 	 //   }
 	 
 	 //   if(chindfy < 3. ) {
 	 //float dY = (itrack.ay()+ itrack.by()*zref) - yref;// precision of ref point
-	   float dY = (bytrue - itrack.by())*zref;// precision of DeltaY points at 8m arm
-	   //float dY = bytrue*zref - (itrack.by()*zref + YYY420);// 
+	 float dY = (bytrue - itrack.by())*zref;// precision of DeltaY points at 8m arm
 	 TheHistManager->GetHisto("dYinVtxTrack")->Fill(dY);
 	 //  }
- //
- //
-   if (verbosity > 0) {
-     std::cout <<"RecFP420Test:: track number = " <<  ntracks << std::endl;
-     std::cout <<" bx= " <<  itrack.bx() <<" by = " <<  itrack.by() << std::endl;
-     std::cout <<" ax= " <<  itrack.ax() <<" ay = " <<  itrack.ay() << std::endl;
-     std::cout <<"ZZZ420 = " << ZZZ420 <<" XXX420 = " << XXX420 <<" YYY420 = " << YYY420 << std::endl;
-     std::cout <<"======================================================= " << std::endl;
-     double zbegin = 420000. - ZZZ420;
-     double zfinis = 428000. - ZZZ420;
-     // double xbegin = itrack.bx()*420000. + itrack.ax() ;
-     // double ybegin = itrack.by()*420000. + itrack.ay() ;
-     // double xfinis = itrack.bx()*428000. + itrack.ax() ;
-     // double yfinis = itrack.by()*428000. + itrack.ay() ;
-     double xbegin = itrack.bx()*zbegin + XXX420;
-     double ybegin = itrack.by()*zbegin + YYY420;
-     double xfinis = itrack.bx()*zfinis + XXX420;
-     double yfinis = itrack.by()*zfinis + YYY420;
-     std::cout <<"So, for reference Zbegin = 420m and  Zfinis = 428m " << std::endl;
-     std::cout <<"xbegin = " <<  xbegin << std::endl;
-     std::cout <<"ybegin = " <<  ybegin << std::endl;
-     std::cout <<"xfinis = " <<  xfinis << std::endl;
-     std::cout <<"yfinis = " <<  yfinis << std::endl;
-     std::cout <<"Kirill, use them as input for HECTOR momentum reconstruction, " << std::endl;
-     std::cout <<"call in this track loop the HECTOR momentum reconstruction" << std::endl;
-  }
- //
 	 
 	 double phitrack; double phitrackgrad; double dphitrack; double thtrack; double dthtrack; double thtrackc;
 	 double dphitrack2, dthtrack2;
@@ -2441,9 +4030,58 @@ void RecFP420Test::update(const EndOfEvent * evt) {
  //
  ////                       END                                     END                                 END      access to Tracks
 
+
+
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 //                                                                                                   first OLD:
 //
        double cov00, cov01, cov11, chisq;
+       /*
+//X                                                                                                   X
+       double c0X, c1X;
+         TheHistManager->GetHisto("nhitplanesX")->Fill(nhitplanesX);
+       gsl_fit_wlinear (zX, 1, wX, 1, xX, 1, nhitplanesX, 
+                        &c0X, &c1X, &cov00, &cov01, &cov11, 
+                        &chisq);
+       float chindfx;
+       if(nhitplanesX>2) {
+	 chindfx = chisq/(nhitplanesX-2);
+       }
+       else{
+	 chindfx = chisq;
+       }
+       	 TheHistManager->GetHisto("chisqX")->Fill(chindfx);
+       if(chindfx < 3. ) {
+	// float dX = (c0X+ c1X*zref) - xref;
+	 float dX = (bxtrue - itrack.bx()*zref;// precision of DeltaX points at 8m arm
+	 	 TheHistManager->GetHisto("dXinVtxTrack")->Fill(dX);
+       }
+*/
+//                                                                                                         .1
+//                                                                           X  Fit for      1 Station
+/*
+       double c0X1, c1X1;
+       TheHistManager->GetHisto("nhitplanes1X")->Fill(nhitplanes1X);
+       gsl_fit_wlinear (z1X, 1, w1X, 1, x1X, 1, nhitplanes1X, 
+                        &c0X1, &c1X1, &cov00, &cov01, &cov11, 
+                        &chisq);
+       //float d1X = (-vx-12.7) - (c0X1+ c1X1*zref);
+    //   float d1X = (c0X1+ c1X1*zref) - xref;// need to be corrected
+	 float dX = (bxtrue - itrack.bx()*zref;// precision of DeltaX points at 8m arm
+       TheHistManager->GetHisto("d1XinVtxTrack")->Fill(d1X);
+       if(nhitplanes1X>2)TheHistManager->GetHisto("chisq1X")->Fill(chisq/(nhitplanes1X-2));
+*/
 //                                                                                                         .2
 //                                                                           X  Fit for      2 Stations
        double c0X2, c1X2;
@@ -2472,6 +4110,61 @@ void RecFP420Test::update(const EndOfEvent * evt) {
 //                                                                                                         .
 
 
+#ifdef mydebug10
+       //printf ("# ===================Start fit in event   ===========================================\n");
+       std::cout << " Number of points for fit in X: " << nhitplanesX << " dX= " << dX << std::endl;
+       std::cout << " vx= " << vx << " vy= " << vy << " zref= " << zref << std::endl;
+       std::cout << " c0+ c1*zref= " << c0X+ c1X*zref << std::endl;
+
+     //  printf ("# best fit: X = %g + %g Z\n", c0X, c1X);
+     //  printf ("# covariance matrix:\n");
+     //  printf ("# [ %g, %g\n#   %g, %g]\n", 
+     //          cov00, cov01, cov01, cov11);
+     //  printf ("# chisq = %g\n", chisq);
+     //  printf ("# ==============================================================\n");
+
+
+       //       std::cout << " gsl_cdf_chisq_Q= " << gsl_cdf_chisq_Q( chisq, nhitplanesX-2) << std::endl;
+#endif
+
+
+
+
+
+       
+//Y                                                                                                        Y
+/*
+        double c0Y, c1Y;
+      TheHistManager->GetHisto("nhitplanesY")->Fill(nhitplanesY);
+       gsl_fit_wlinear (zY, 1, wY, 1, yY, 1, nhitplanesY, 
+                        &c0Y, &c1Y, &cov00, &cov01, &cov11, 
+                        &chisq);
+       float chindfy;
+       if(nhitplanesY>2) {
+	 chindfy = chisq/(nhitplanesY-2);
+       }
+       else{
+	 chindfy = chisq;
+       }
+	 TheHistManager->GetHisto("chisqY")->Fill(chindfy);
+       if(chindfy < 3. ) {
+	 float dY = (c0Y+ c1Y*zref) - yref;
+	 TheHistManager->GetHisto("dYinVtxTrack")->Fill(dY);
+       }
+*/       
+//                                                                                                         .1
+//                                                                           Y  Fit for      1 Station
+/*
+       double c0Y1, c1Y1;
+       TheHistManager->GetHisto("nhitplanes1Y")->Fill(nhitplanes1Y);
+       gsl_fit_wlinear (z1Y, 1, w1Y, 1, y1Y, 1, nhitplanes1Y, 
+                        &c0Y1, &c1Y1, &cov00, &cov01, &cov11, 
+                        &chisq);
+       //float d1Y = (vy+5.) - (c0Y1+ c1Y1*zref);
+       float d1Y = (c0Y1+ c1Y1*zref) - yref;
+       TheHistManager->GetHisto("d1YinVtxTrack")->Fill(d1Y);
+       if(nhitplanes1Y>2) TheHistManager->GetHisto("chisq1Y")->Fill(chisq/(nhitplanes1Y-2));
+*/
 //                                                                                                         .2
 //                                                                           Y  Fit for      2 Stations
        double c0Y2, c1Y2;
@@ -2498,6 +4191,24 @@ void RecFP420Test::update(const EndOfEvent * evt) {
        if(nhitplanes3Y>2) TheHistManager->GetHisto("chisq3Y")->Fill(chisq/(nhitplanes3Y-2));
 //                                                                                                         .
 
+#ifdef mydebug10
+     //  printf ("# ===================Start fit in event   ===========================================\n");
+       std::cout << " Number of points for fit in Y: " << nhitplanesY << " dY= " << dY << std::endl;
+       std::cout << " vx= " << vx << " vy= " << vy << " zref= " << zref << std::endl;
+       std::cout << " c0+ c1*zref= " << c0Y+ c1Y*zref << std::endl;
+       //printf ("# best fit: Y = %g + %g Z\n", c0Y, c1Y);
+       //printf ("# covariance matrix:\n");
+       //printf ("# [ %g, %g\n#   %g, %g]\n", 
+       //        cov00, cov01, cov01, cov11);
+       //printf ("# chisq = %g\n", chisq);
+//
+       //printf ("# ==============================================================\n");
+#endif
+//
+//
+//                                                                                                         .
+//
+//
 //
 //
 //               Theta and Phi:                                                      Theta and Phi:                            Theta and Phi:
@@ -2505,6 +4216,47 @@ void RecFP420Test::update(const EndOfEvent * evt) {
 //
 //
        double phitrack; double phitrackgrad; double dphitrack; double thtrack; double dthtrack; double thtrackc;
+//
+//
+//
+/*
+       //       if(chindfx < 3. && chindfy < 3. ) {
+       if(chindfx < 3. && chindfy < 3. ) {
+	 phitrack = 0.; thtrack = 0.;
+	 if((c1X*100000.) != 0.) phitrack = atan2(c1Y*100000.,c1X*100000.);
+	 if(phitrack < 0.) phitrack += twopi;
+	 phitrackgrad = phitrack*180./pi;
+	 dphitrack = phi - phitrack;
+	 thtrackc = cos(phitrack);
+	 if(thtrackc != 0.) thtrack = atan(c1X/thtrackc);
+	 if(thtrack < 0.) thtrack += pi/2.;
+	 dthtrack = th - thtrack;
+	 TheHistManager->GetHisto("dphitrack")->Fill(dphitrack*1000.);
+	 TheHistManager->GetHisto("dthtrack")->Fill(dthtrack*1000000.);
+       }
+*/
+//
+//                                                                              1 Station
+//
+/*
+       phitrack = 0.; thtrack = 0.;
+       if((c1X1*100000.) != 0.) phitrack = atan2(c1Y1*100000.,c1X1*100000.);
+       if(phitrack < 0.) phitrack += twopi;
+       phitrackgrad = phitrack*180./pi;
+       dphitrack = phi - phitrack;
+       thtrackc = cos(phitrack);
+       if(thtrackc != 0.) thtrack = atan(c1X1/thtrackc);
+       if(thtrack < 0.) thtrack += pi/2.;
+       dthtrack = th - thtrack;
+       TheHistManager->GetHisto("dphitrack1")->Fill(dphitrack*1.);
+       TheHistManager->GetHisto("dthtrack1")->Fill(dthtrack*1000.);
+#ifdef mydebug10
+       //printf ("# ===================Start fit in event   ===========================================\n");
+       std::cout << " dthtrack= " << dthtrack << " th= " << th<< " thtrack= " << thtrack << std::endl;
+       std::cout << " phitrack= " << phitrack << " dphitrack= " << dphitrack << " phi= " << phi << std::endl;
+       std::cout << " c1X1 = " << c1X1 << " c1Y1= " << c1Y1 << std::endl;
+#endif
+*/
 //
 //                                                                              2 Stations
 //
@@ -2553,7 +4305,11 @@ void RecFP420Test::update(const EndOfEvent * evt) {
      if(clnum1X >=1 && clnum2X >=2 ) TheHistManager->GetHisto("d5thetax2")->Fill((bxtrue-c1X2)*1000000.);
      if(clnum1X >=1 && clnum2X >=3 ) TheHistManager->GetHisto("d6thetax2")->Fill((bxtrue-c1X2)*1000000.);
      if(clnum1X >=1 && clnum2X >=4 ) TheHistManager->GetHisto("d7thetax2")->Fill((bxtrue-c1X2)*1000000.);
+
+
        }
+
+
 //
 //                                                                              3 Stations
 //
@@ -2572,6 +4328,27 @@ void RecFP420Test::update(const EndOfEvent * evt) {
        TheHistManager->GetHisto("dthetax3")->Fill((bxtrue-c1X3)*1000000.);
        TheHistManager->GetHisto("dthetay3")->Fill((bytrue-c1Y3)*1000000.);
 //
+//
+
+
+
+
+//
+//                                                                                                         .
+//                                                                                                         .
+//                                                                                                         .
+//
+//
+//
+//
+//
+//
+//
+//
+//                                                                                                         .
+//                                                                                                         .
+//                                                                                                         .
+//
 //                                                .
 //                     TrackReconstruction:                                                    =END
 //                                                .
@@ -2580,14 +4357,108 @@ void RecFP420Test::update(const EndOfEvent * evt) {
     }
 
 
+
+// ==============================================================================================
+// ==============================================================================================
+// ==============================================================================================
+// ==============================================================================================
+// ==============================================================================================
+// ==============================================================================================
+// ==============================================================================================
+// ==============================================================================================
+
+// ==============================================================================================
+// ==============================================================================================
+// ==============================================================================================
+// ==============================================================================================
+
   } // if(totallosenergy 
   //====================================================================================================== number of hits
+  
+  
+  // ==============================================================================================
+  
+  
+  
+  
+  
+  
+  
+  // .............
+  //    } // number of hits < 50
+  // .............
 	   }   // MI or no MI or all  - end
 	   else{
 	     //#ifdef mydebug10
 	     std::cout << "Else: varia: MI or no MI or all " << std::endl;
 	     //#endif
 	       }
+	   /*
+
+
+  // ==========================================================================
+  //   Collection of Hits in fibres and tunsten for Sectors and Modules start
+  // hit map in fibers
+  //    map<int,float,less<int> > themap;
+  // en in sectors and zmodules:
+
+  double EnSec[16], EnZmod[18];
+  
+  for (int j=0; j<16; j++) EnSec[j]=0.;
+  for (int j=0; j<18; j++) EnZmod[j]=0.;
+
+  // collect energy in fibres:
+  for (int j=0; j<theCAFI->entries(); j++) {
+    CaloG4Hit* aHit = (*theCAFI)[j];
+    float theEnergy = aHit->getEnergyDeposit();
+    int det, zside, sector, zmodule;
+    unsigned int unitID = aHit->getUnitID();
+    CaloNumberingPacker::unpackCastorIndex(unitID, det, zside, sector, zmodule);
+    EnSec[sector-1] += aHit->getEnergyDeposit();
+    EnZmod[zmodule-1] += aHit->getEnergyDeposit();
+
+    //UserNtuples->fillg20(sector,aHit->getEnergyDeposit());
+    //  //UserNtuples->fillg20(sector,aHit->getHadr());
+    //UserNtuples->fillg21(sector,1.);
+    //UserNtuples->fillf30(zmodule,aHit->getEnergyDeposit());
+    // //UserNtuples->fillf30(zmodule,aHit->getEM());
+    //UserNtuples->fillf31(zmodule,1.);
+    // =========
+    Hep3Vector pos = aHit->getEntry();
+    float theta    = pos.theta();
+    float   eta    = -log(tan(theta * 0.5));
+    float   phi    = pos.phi();
+    if (phi < 0.) phi += twopi;
+    float   xx    = pos.x();
+    float   yy    = pos.y();
+    float   zz    = pos.z();
+    // =========
+    //UserNtuples->fillp201(xx,yy,theEnergy);
+    //UserNtuples->fillp202(xx,zz,aHit->getEnergyDeposit());
+    //UserNtuples->fillp203(yy,zz,aHit->getEnergyDeposit());
+
+    //UserNtuples->filld204(xx,yy,theEnergy);
+    //UserNtuples->filld205(xx,zz,aHit->getEnergyDeposit());
+    //UserNtuples->filld206(yy,zz,aHit->getEnergyDeposit());
+    // =========
+    //UserNtuples->fillg22(xx,1.);
+    //UserNtuples->fillg23(yy,1.);
+    //UserNtuples->fillg24(zz,1.);
+    // =========
+    //UserNtuples->fillg25(zz,aHit->getEnergyDeposit());
+    //UserNtuples->fillg26(zz,1.);
+    float   R    = sqrt(xx*xx+yy*yy);
+    //UserNtuples->fillg27(R,aHit->getEnergyDeposit());
+    //UserNtuples->fillg28(R,1.);
+    // =========
+    //UserNtuples->fillh06(eta);
+    float phigrad = phi*180./pi;
+    //UserNtuples->fillh07(phigrad);
+    // =========
+  }
+  // ==============
+*/
+
 
     }                                                // primary end
     else{
@@ -2596,8 +4467,68 @@ void RecFP420Test::update(const EndOfEvent * evt) {
       //#endif
     }
 //=========================== thePrim != 0  end   ================================================================================
+  //==================================================================================================================
+
+
+
+
+  // ==========================================================================
+  // ==========================================================================
+  // ==========================================================================
+  // ==========================================================================
+  // ==========================================================================
+  // ==========================================================================
+  // ==========================================================================
+  //UserNtuples->fill();
+  // ==========================================================================
+
+
+  // summary
+  // ==========================================================================
+  /*
+    std::cout <<" energy in fibres = " << en_in_fi 
+         <<" number of hits in fibres = " << theCAFI->entries() << std::endl;
+
+    std::cout <<" energy in bundle = " << en_in_bu 
+	 <<" number of hits in bundle = " << theCABU->entries() << std::endl;
+
+    std::cout <<" energy in tungsten = " << en_in_tu 
+	 <<" number of hits in tungsten = " << theCATU->entries() << std::endl;
+  */
+  // ==========================================================================
+  /*
+    for(int ich = 0; ich < 16; ich++)
+      {
+        std::cout <<" EnSec = " << EnSec[ich] << "sector number="  << ich  << std::endl;
+      }
+    for(int ich = 0; ich < 18; ich++)
+      {
+        std::cout <<" EnZmod = " << EnZmod[ich] << "module number=" << ich << std::endl;
+      }
+  */
+  // ==========================================================================
+
+  // ==========================================================================
+  // ==========================================================================
+#ifdef ddebug
+  std::cout << " END OF Event " << (*evt)()->GetEventID() << std::endl;
+#endif
 
 
 }
+
 // ==========================================================================
+/*
+##include "Utilities/GenUtil/interface/PackageInitializer.h"
+##include "Utilities/UI/interface/PackageBuilderUI.h"
+#
+#static PKBuilder<ObserveBeginOfRun> 	observeBeginOfRun("ObserveBeginOfRun");
+#static PKBuilder<ObserveEndOfRun>   	observeEndOfRun("ObserveEndOfRun");
+#static PKBuilder<ObserveBeginOfEvent> 	observeBeginOfEvent("ObserveBeginOfEvent");
+#static PKBuilder<ObserveEndOfEvent>   	observeEndOfEvent("ObserveEndOfEvent");
+#static PKBuilder<ObserveBeginOfTrack> 	observeBeginOfTrack("ObserveBeginOfTrack");
+#static PKBuilder<ObserveEndOfTrack>   	observeEndOfTrack("ObserveEndOfTrack");
+#static PKBuilder<ObserveStep>   	observeStep("ObserveStep");
+#static PKBuilder<RecFP420Test>   		myActions("RecFP420Test");
+*/
 

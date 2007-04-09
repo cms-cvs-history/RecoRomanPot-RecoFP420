@@ -1,6 +1,6 @@
 es_source = XMLIdealGeometryESSource {
  	vstring geomXMLFiles = {
-		"Geometry/FP420CommonData/data/fp420.xml",
+		"RecoRomanPot/RecoFP420/test/data/fp420.xml",
                 "RecoRomanPot/RecoFP420/test/data/zzzrectangle.xml",
 		"Geometry/FP420CommonData/data/materialsfp420.xml",
 		"Geometry/FP420CommonData/data/FP420Rot.xml",
@@ -13,6 +13,7 @@ es_source = XMLIdealGeometryESSource {
 
 
 
+#		"Geometry/FP420CommonData/data/fp420.xml",
 #		"Geometry/CMSCommonData/data/mgnt.xml",
 #		"SimG4CMS/FP420/test/data/CaloUtil.xml",
 #
