@@ -1,0 +1,26 @@
+module FP420Track =  TrackerizerFP420 {
+    #--------------------------------
+    #--------------------------------
+    vstring ROUList = {"FP420Cluster"}	
+    #--------------------------------
+    ###-----------------------------TrackerizerFP420 
+    #--------------------------------
+    untracked int32 VerbosityLevel = 0		 
+    #--------------------------------
+    ###-----------------------------FP420TrackMain
+    #--------------------------------
+    string TrackModeFP420 = "TrackProducerSophisticatedFP420"
+    int32 NumberFP420Stations = 4
+    int32 NumberFP420SPlanes = 6
+    int32 NumberFP420SPTypes = 2
+    double z420          = 420000.0
+    double zD2           = 4000.0
+    double zD3           = 8000.0
+    double dXXFP420 =  4.7
+    double dYYFP420 =  5.0
+    double chiCutX420 = 5.
+    double chiCutY420 = 50.
+    #--------------------------------
+    #--------------------------------
+}
+

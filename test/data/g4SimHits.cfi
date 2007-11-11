@@ -6,7 +6,7 @@
 
    module g4SimHits = OscarProducer
    {
-      bool NonBeamEvent = false
+      bool NonBeamEvent = true
       untracked int32 G4EventManagerVerbosity = 0
       untracked int32 G4StackManagerVerbosity = 0
       untracked int32 G4TrackingManagerVerbosity = 0
@@ -25,10 +25,6 @@
          double delta = 1.
          bool UseLocalMagFieldManager = false
          untracked bool Verbosity = false
-####
-# this is a provision for dfuture development
-# not used in 15x cycle
-####
          PSet ConfGlobalMFM =
          {
             string Volume = "OCMS"
@@ -50,7 +46,6 @@
 	    }
          }
       }
-###
       PSet Physics =
       {
          # NOTE : if you want EM Physics only,
@@ -61,7 +56,7 @@
 	 string type = "SimG4Core/Physics/QGSP_EMV" ## G4.7.1-like backup option
          bool DummyEMPhysics = false
          bool CutsPerRegion = true
-         double DefaultCutValue = 1000.  # cuts in cm, i.e. 10m
+         double DefaultCutValue = 1.0  # cuts in cm
          double G4BremsstrahlungThreshold = 0.5 # cut in GeV
          untracked int32 Verbosity = 0   # 1 will print cuts as they get set fdrom DD
                                          # 2 will do as 1 + will dump Geant4 table of cuts
@@ -73,10 +68,6 @@
       }
       PSet Generator =
       {
-         ### string HepMCProductLabel = "VtxSmeared"  # alternative would be : 
-	                                          # InputTag MCProductLabel = source
-	                                          # to get the "original" on (without vtx smearing);
-					          # NO other MCProduct's/labels in edm::Event
          string HepMCProductLabel = "source"
          ### string HepMCProductLabel = "VtxSmeared"
          bool ApplyPtCuts  = true
@@ -155,8 +146,10 @@
          double BirkC2 = 9.6e-6
          bool   UseShowerLibrary = true
          bool   TestNumberingScheme = false
-         untracked bool   UseHF     = true
-         untracked bool   forTBH2   = false
+         untracked bool   UseParametrize = false
+         untracked bool   UseHF          = true
+         untracked bool   ForTBH2        = false
+         untracked bool   UsePMTHits     = false
       }
       PSet CaloTrkProcessing = {
          bool   TestBeam  = false
@@ -165,12 +158,17 @@
       PSet HFShower = {
          double ProbMax   = 0.7268
          double CFibre    = 0.50
+         untracked double PEPerGeV    = 0.25
+         untracked double PEPerGeVPMT = 1.0
       }
       PSet HFShowerLibrary = {
-##       FileInPath FileName = "SimG4CMS/Calo/data/hfshowerlibrary_lhep_142.root"
-         FileInPath FileName = "SimG4CMS/Calo/data/hfshowerlibrary_lhep.root"
+         FileInPath FileName = "SimG4CMS/Calo/data/hfshowerlibrary_lhep_142.root"
          string TreeEMID  = "h3"
          string TreeHadID = "h8"
+         untracked string BranchEvt = "HFShowerLibraryEventInfos_hfshowerlib_HFShowerLibraryEventInfo"
+         untracked string BranchPre = "HFShowerPhotons_hfshowerlib_"
+         untracked string BranchPost= "_R.obj"
+         untracked bool   Verbosity = false
       }
       PSet HFCherenkov = {
          double RefIndex        = 1.459
@@ -191,14 +189,14 @@
          int32  Verbosity = 0
          double FiberDirection = 0.0
       }
- 	  	  		 PSet FP420SD = {
-      	  			untracked  int32 Verbosity  = 0
-  				    }
       PSet EcalTBH4BeamSD = {
          bool   UseBirkLaw = false
          double BirkC1 = 0.013
          double BirkC2 = 9.6e-6
       }
+ 	  	  		 PSet FP420SD = {
+      	  			untracked  int32 Verbosity  = 2
+  				    }
       PSet HcalTB06BeamSD = {
          bool   UseBirkLaw = false
          double BirkC1 = 0.013
@@ -206,4 +204,3 @@
       }
   
    }
-
