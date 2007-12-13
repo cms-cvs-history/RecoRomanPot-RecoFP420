@@ -8,6 +8,7 @@ module FP420Cluster =  ClusterizerFP420 {
     #--------------------------------
     ###-----------------------------ClusterizerFP420 
     #--------------------------------
+    int32 NumberFP420Detectors = 3
     int32 NumberFP420Stations = 4
     int32 NumberFP420SPlanes = 6
     #--------------------------------
@@ -15,9 +16,9 @@ module FP420Cluster =  ClusterizerFP420 {
     #--------------------------------
     double ElectronFP420PerAdc = 300.0
     string ClusterModeFP420 = "ClusterProducerFP420"
-    double ChannelFP420Threshold = 6.0
-    double SeedFP420Threshold= 6.0
-    double ClusterFP420Threshold= 6.0
+    double ChannelFP420Threshold = 7.0
+    double SeedFP420Threshold= 7.5
+    double ClusterFP420Threshold= 8.0
     int32  MaxVoidsFP420InCluster= 1
     #--------------------------------
     #--------------------------------
