@@ -1,0 +1,21 @@
+module FP420Reco =  ReconstructerFP420 {
+    #--------------------------------
+    #--------------------------------
+    vstring ROUList = {"FP420Track"}	
+    #--------------------------------
+    #--------------------------------
+    untracked int32 VerbosityLevel = 0		 
+    #--------------------------------
+    #--------------------------------
+     double  BeamLineLength   = 430.0
+     double  RP420f =  420000.   
+     double  RP420b =  420000.   
+     double  zreff  =    8000.   
+     double  zrefb  =    8000.   
+     int32 NumberFP420Detectors = 3
+    #-------------------------------------
+     string Beam1 = "SimTransport/HectorProducer/data/LHCB1IR5_v6.500.tfs"
+     string Beam2 = "SimTransport/HectorProducer/data/LHCB2IR5_v6.500.tfs"
+    #--------------------------------
+    #--------------------------------
+}
