@@ -21,6 +21,8 @@ module FP420Track =  TrackerizerFP420 {
     double dYYFP420 =  5.0
     double chiCutX420 = 50.
     double chiCutY420 = 2.
+#    double chiCutX420 = 50.
+#    double chiCutY420 = 2.
     #--------------------------------chiCutX420 = 5.
     #--------------------------------chiCutY420 = 50.
 }
