@@ -22,9 +22,6 @@
 #include<vector>
 #include<map>
 #include<iostream>
-using namespace std;
-
-
 
 namespace cms
 {
