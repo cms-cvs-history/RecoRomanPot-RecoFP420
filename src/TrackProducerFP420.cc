@@ -475,7 +475,7 @@ std::vector<TrackFP420> TrackProducerFP420::trackFinderSophisticated(edm::Handle
 		double dymin=9999999., df2; int cl2=-1;
 		for (int cl=0; cl<nA[ii]; ++cl) {
 		  if(qA[cl][ii]){
-		    df2 = abs(fyY[fip]-yA[cl][ii]);
+		    df2 = std::abs(fyY[fip]-yA[cl][ii]);
 		    if(df2 < dymin) {
 		      dymin = df2;
 		      cl2=cl;
@@ -489,7 +489,7 @@ std::vector<TrackFP420> TrackProducerFP420::trackFinderSophisticated(edm::Handle
 #ifdef debugsophisticated
 		  std::cout << " t= " << t << " tg0= " << tg0 << std::endl;
 #endif
-		  if(abs(t)<tg0) { 
+		  if(std::abs(t)<tg0) { 
 		    qA[cl2][ii] = false;//point is taken, mark it for not using again
 		    fyY[py-1]=yA[cl2][ii];
 		    fzY[py-1]=zA[cl2][ii];
@@ -587,7 +587,7 @@ std::vector<TrackFP420> TrackProducerFP420::trackFinderSophisticated(edm::Handle
 			  std::cout << " diffpo= " << diffpo << " yA[cl][ii]= " << yA[cl][ii] << " sm= " << sm << " sigma= " << sigma << std::endl;
 #endif
 		      
-		      if(abs(diffpo) < sigma ) {
+		      if(std::abs(diffpo) < sigma ) {
 			if(NewStation){
 			  ++stattimes;
 			  if(stattimes==1) {
@@ -836,13 +836,13 @@ std::vector<TrackFP420> TrackProducerFP420::trackFinderSophisticated(edm::Handle
        //if(Bx[trx] != 0.) yyyyyy = Ay[tr]-(Ax[trx]-xxxvtx)*By[tr]/Bx[trx];
        //double xxxxxx = 999999.;
        //if(By[tr] != 0.) xxxxxx = Ax[trx]-(Ay[tr]-yyyvtx)*Bx[trx]/By[tr];
-       //double  dthdif= abs(yyyyyy-yyyvtx) + abs(xxxxxx-xxxvtx);
+       //double  dthdif= std::abs(yyyyyy-yyyvtx) + std::abs(xxxxxx-xxxvtx);
 
-       double  dthdif= abs(AxW[trx]-Ay[tr]) + abs(BxW[trx]-By[tr]);
+       double  dthdif= std::abs(AxW[trx]-Ay[tr]) + std::abs(BxW[trx]-By[tr]);
 
 #ifdef debugsophisticated
        //  std::cout << " yyyyyy= " << yyyyyy << " xxxxxx= " << xxxxxx << " dthdif= " << dthdif << std::endl;
-  std::cout << " abs(AxW[trx]-Ay[tr]) = " << abs(AxW[trx]-Ay[tr]) << " abs(BxW[trx]-By[tr])= " << abs(BxW[trx]-By[tr]) << " dthdif= " << dthdif << std::endl;
+  std::cout << " std::abs(AxW[trx]-Ay[tr]) = " << std::abs(AxW[trx]-Ay[tr]) << " std::abs(BxW[trx]-By[tr])= " << std::abs(BxW[trx]-By[tr]) << " dthdif= " << dthdif << std::endl;
 #endif
  //--------------------------------------------------------------------	    ----	----	----	----	----	----
 		  if( dthdif < dthmin ) {

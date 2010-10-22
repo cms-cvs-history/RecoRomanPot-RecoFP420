@@ -158,11 +158,11 @@ int ClusterProducerFP420::difNarr(unsigned int zside, HDigiFP420Iter ichannel,
   int d = 9999;
     if(zside == 2) {
       d = ichannel->stripV() - jchannel->stripV();
-      d=abs(d);
+      d=std::abs(d);
     }
     else if(zside == 1) {
       d = ichannel->stripH() - jchannel->stripH();
-      d=abs(d);
+      d=std::abs(d);
     }
     else{
       std::cout << "difNarr: wrong zside =  " << zside << std::endl;
@@ -174,11 +174,11 @@ int ClusterProducerFP420::difWide(unsigned int zside, HDigiFP420Iter ichannel,
   int d = 9999;
     if(zside == 2) {
       d = ichannel->stripVW() - jchannel->stripVW();
-      d=abs(d);
+      d=std::abs(d);
     }
     else if(zside == 1) {
       d = ichannel->stripHW() - jchannel->stripHW();
-      d=abs(d);
+      d=std::abs(d);
     }
     else{
       std::cout << "difWide: wrong zside =  " << zside << std::endl;
