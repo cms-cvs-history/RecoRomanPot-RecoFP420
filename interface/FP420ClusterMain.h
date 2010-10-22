@@ -17,7 +17,6 @@
 #include "DataFormats/FP420Cluster/interface/ClusterFP420.h"
 #include <iostream>
 #include <vector>
-using namespace std;
 
 class ClusterNoiseFP420;
 class ClusterProducerFP420;
